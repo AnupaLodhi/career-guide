@@ -1,0 +1,1584 @@
+import { useState, useRef, useEffect } from "react";
+
+// ── FONTS ──────────────────────────────────────────────────────────────────
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');`;
+
+// ── STATIC DATA ─────────────────────────────────────────────────────────────
+const SKILL_SUGGESTIONS = ["Python","JavaScript","React","Machine Learning","SQL","Figma","Leadership","Copywriting","Data Analysis","Marketing","Node.js","Swift"];
+const HINTS = ["What skill should I learn first?","Am I being realistic?","Give me a 4-week plan","What's holding me back?","How do I start today?"];
+const IMG_TYPES = ["image/jpeg","image/png","image/gif","image/webp"];
+const RES_SECTIONS = ["All","YouTube","Courses","Jobs","Internships","Fellowships","Social"];
+
+const SOCIAL_PLATFORMS_DATA = [
+  { id:"sp1",  icon:"💼", name:"LinkedIn",    color:"#0077b5", url:"https://linkedin.com",      desc:"World's largest professional network. Connect with recruiters, showcase projects.", region:"🌍 Global",  best:"Networking, Jobs, B2B" },
+  { id:"sp2",  icon:"🐙", name:"GitHub",      color:"#6e40c9", url:"https://github.com",        desc:"Home of open-source. Showcase your code and build a dev portfolio.", region:"🌍 Global",  best:"Developers, Open Source" },
+  { id:"sp3",  icon:"🟠", name:"LeetCode",    color:"#ffa116", url:"https://leetcode.com",      desc:"3000+ coding problems. Essential for FAANG-level technical interviews.", region:"🌍 Global",  best:"Interview Prep, DSA" },
+  { id:"sp4",  icon:"🐦", name:"Twitter / X", color:"#1d9bf0", url:"https://twitter.com",       desc:"Build a personal brand. Tech Twitter and founder communities are powerful.", region:"🌍 Global",  best:"Personal Brand, Startups" },
+  { id:"sp5",  icon:"🎨", name:"Behance",     color:"#053eff", url:"https://behance.net",       desc:"Adobe's creative portfolio. Recruiters actively browse here for talent.", region:"🌍 Global",  best:"Designers, UX/UI, Creative" },
+  { id:"sp6",  icon:"🏀", name:"Dribbble",    color:"#ea4c89", url:"https://dribbble.com",      desc:"Premium design community. Top UI/UX designers get hired here.", region:"🌍 Global",  best:"UI Design, Illustration" },
+  { id:"sp7",  icon:"👩‍💻", name:"Dev.to",      color:"#a855f7", url:"https://dev.to",           desc:"Developer blogging. Write tutorials, build authority and discoverability.", region:"🌍 Global",  best:"Developers, Tech Writing" },
+  { id:"sp8",  icon:"📝", name:"Medium",      color:"#00ab6c", url:"https://medium.com",        desc:"Long-form writing. Publish articles and monetize with Partner Program.", region:"🌍 Global",  best:"Writing, Thought Leadership" },
+  { id:"sp9",  icon:"📹", name:"YouTube",     color:"#ff0000", url:"https://youtube.com",       desc:"Video content is king. Tutorials, vlogs, courses — massive reach.", region:"🌍 Global",  best:"Creators, Educators" },
+  { id:"sp10", icon:"📸", name:"Instagram",   color:"#e1306c", url:"https://instagram.com",     desc:"Visual storytelling. Great for designers, photographers and marketers.", region:"🌍 Global",  best:"Creative, Fashion, Marketing" },
+  { id:"sp11", icon:"🔶", name:"HackerRank",  color:"#00ea64", url:"https://hackerrank.com",    desc:"Coding challenges and certified badges you can share with employers.", region:"🌍 Global",  best:"Developers, Certifications" },
+  { id:"sp12", icon:"🔵", name:"Kaggle",      color:"#20beff", url:"https://kaggle.com",        desc:"Data science competitions. Build a public ML portfolio and climb leaderboards.", region:"🌍 Global",  best:"Data Science, ML, Analytics" },
+  { id:"sp13", icon:"💬", name:"Discord",     color:"#5865f2", url:"https://discord.com",       desc:"Community-first. Join dev, design, startup and AI communities.", region:"🌍 Global",  best:"Community, Dev, Startups" },
+  { id:"sp14", icon:"🎙️", name:"Substack",    color:"#ff6719", url:"https://substack.com",      desc:"Newsletter platform with built-in monetization. Grow a subscriber base.", region:"🌍 Global",  best:"Writing, Newsletter, Niche" },
+];
+
+const LANGUAGES = [
+  { id:"en", name:"English",    flag:"🇬🇧", native:"English",    speakers:"1.5B",  difficulty:"★☆☆☆☆" },
+  { id:"ko", name:"Korean",     flag:"🇰🇷", native:"한국어",     speakers:"82M",   difficulty:"★★★★☆" },
+  { id:"zh", name:"Chinese",    flag:"🇨🇳", native:"中文",       speakers:"1.1B",  difficulty:"★★★★★" },
+  { id:"fr", name:"French",     flag:"🇫🇷", native:"Français",   speakers:"280M",  difficulty:"★★☆☆☆" },
+  { id:"es", name:"Spanish",    flag:"🇪🇸", native:"Español",    speakers:"500M",  difficulty:"★★☆☆☆" },
+  { id:"ja", name:"Japanese",   flag:"🇯🇵", native:"日本語",     speakers:"125M",  difficulty:"★★★★★" },
+  { id:"de", name:"German",     flag:"🇩🇪", native:"Deutsch",    speakers:"135M",  difficulty:"★★★☆☆" },
+  { id:"ar", name:"Arabic",     flag:"🇸🇦", native:"العربية",    speakers:"420M",  difficulty:"★★★★☆" },
+  { id:"pt", name:"Portuguese", flag:"🇧🇷", native:"Português",  speakers:"260M",  difficulty:"★★☆☆☆" },
+  { id:"hi", name:"Hindi",      flag:"🇮🇳", native:"हिन्दी",    speakers:"600M",  difficulty:"★★★☆☆" },
+  { id:"ru", name:"Russian",    flag:"🇷🇺", native:"Русский",    speakers:"260M",  difficulty:"★★★★☆" },
+  { id:"it", name:"Italian",    flag:"🇮🇹", native:"Italiano",   speakers:"85M",   difficulty:"★★☆☆☆" },
+];
+
+const LANG_APPS = [
+  { name:"Duolingo",   icon:"🦜", url:"https://duolingo.com",       desc:"Gamified daily lessons. Best for building vocabulary habits.", badge:"Free" },
+  { name:"Pimsleur",   icon:"🎧", url:"https://pimsleur.com",        desc:"Audio-first method. Excellent for pronunciation and speaking.", badge:"Paid" },
+  { name:"Babbel",     icon:"🔵", url:"https://babbel.com",          desc:"Structured conversation-focused lessons for practical use.", badge:"Subscription" },
+  { name:"LingQ",      icon:"📖", url:"https://lingq.com",           desc:"Learn from real content — podcasts, books, articles.", badge:"Freemium" },
+  { name:"HelloTalk",  icon:"💬", url:"https://hellotalk.com",       desc:"Chat with native speakers worldwide. Real language exchange.", badge:"Free" },
+  { name:"Tandem",     icon:"🤝", url:"https://tandem.net",          desc:"Find language partners for video/audio calls.", badge:"Free" },
+  { name:"Anki",       icon:"🃏", url:"https://apps.ankiweb.net",    desc:"Spaced repetition flashcards. Best for vocabulary retention.", badge:"Free" },
+  { name:"Pingo AI",   icon:"🟣", url:"https://pingo.ai",            desc:"AI-powered language learning with real-time conversation practice.", badge:"AI" },
+  { name:"Lingo AI",   icon:"🤖", url:"https://lingopie.com",        desc:"Learn through real TV shows with AI-powered subtitles.", badge:"AI" },
+  { name:"Clozemaster", icon:"🎮",url:"https://clozemaster.com",     desc:"Vocabulary in context. Great for intermediate+ learners.", badge:"Freemium" },
+];
+
+const LANG_YOUTUBE = [
+  { name:"Pingo AI Channel",       icon:"🟣", url:"https://youtube.com/@PingoAI",          desc:"AI-powered language content. Modern, tech-forward approach.", lang:"Multi" },
+  { name:"LanguageTransfer",       icon:"🧠", url:"https://youtube.com/@LanguageTransfer", desc:"Free audio courses. Spanish, French, German, Swahili and more.", lang:"Multi" },
+  { name:"Dreaming Spanish",       icon:"🇪🇸", url:"https://youtube.com/@DreamingSpanish", desc:"Comprehensible input in Spanish. Best channel for fluency.", lang:"Spanish" },
+  { name:"Learn Korean with TTMIK",icon:"🇰🇷", url:"https://youtube.com/@ttmik",           desc:"Talk To Me In Korean — from zero to advanced systematically.", lang:"Korean" },
+  { name:"Mandarin Corner",        icon:"🇨🇳", url:"https://youtube.com/@MandarinCorner",  desc:"Real Chinese conversations with subtitles. Great listening practice.", lang:"Chinese" },
+  { name:"Français avec Pierre",   icon:"🇫🇷", url:"https://youtube.com/@francaisavecpierre", desc:"Clear, well-structured French lessons for all levels.", lang:"French" },
+  { name:"JapanesePod101",         icon:"🇯🇵", url:"https://youtube.com/@JapanesePod101",  desc:"Structured Japanese with cultural context.", lang:"Japanese" },
+  { name:"Deutsch für Euch",       icon:"🇩🇪", url:"https://youtube.com/@DeutschfuerEuch", desc:"Fun, casual German lessons. Grammar explained simply.", lang:"German" },
+  { name:"SpanishPod101",          icon:"🇪🇸", url:"https://youtube.com/@SpanishPod101",   desc:"Comprehensive Spanish from beginner to advanced.", lang:"Spanish" },
+];
+
+const LANG_CERTS = [
+  { name:"IELTS",           flag:"🇬🇧", url:"https://ielts.org",             desc:"International English — UK/Australia/Canada visas & universities.", lang:"English" },
+  { name:"TOEFL",           flag:"🇺🇸", url:"https://ets.org/toefl",         desc:"Test of English — standard for US university admissions.", lang:"English" },
+  { name:"TOPIK",           flag:"🇰🇷", url:"https://topik.go.kr",           desc:"Test of Proficiency in Korean. Required for Korean universities.", lang:"Korean" },
+  { name:"HSK",             flag:"🇨🇳", url:"https://chinesetest.cn",        desc:"Official Chinese proficiency. Required for China universities.", lang:"Chinese" },
+  { name:"DELF/DALF",       flag:"🇫🇷", url:"https://ciep.fr/delf-dalf",     desc:"Official French diplomas. Recognized globally.", lang:"French" },
+  { name:"DELE",            flag:"🇪🇸", url:"https://dele.cervantes.es",     desc:"Official Spanish diploma by Instituto Cervantes.", lang:"Spanish" },
+  { name:"JLPT",            flag:"🇯🇵", url:"https://jlpt.jp",               desc:"Japanese Language Proficiency Test. N5 beginner to N1 advanced.", lang:"Japanese" },
+  { name:"Goethe-Zertifikat",flag:"🇩🇪",url:"https://goethe.de",             desc:"Official German certification. Required for Germany visas.", lang:"German" },
+  { name:"DELE (Arabic)",   flag:"🇸🇦", url:"https://arabic.languages.sa",   desc:"Arabic language proficiency test. Recognized by Arab countries.", lang:"Arabic" },
+  { name:"Cambridge (English)",flag:"🇬🇧",url:"https://cambridgeenglish.org", desc:"Cambridge English suite — B2 First, C1 Advanced, C2 Proficiency.", lang:"English" },
+];
+
+const UNIVERSITIES = {
+  "Computer Science": [
+    { name:"MIT",               rank:"#1 🌍", country:"🇺🇸 USA",         url:"https://mit.edu",            scholarship:"MIT Need-Based Aid (full)", tuition:"$60K/yr" },
+    { name:"Stanford",          rank:"#2 🌍", country:"🇺🇸 USA",         url:"https://stanford.edu",       scholarship:"Knight-Hennessy Scholars",  tuition:"$62K/yr" },
+    { name:"Carnegie Mellon",   rank:"#3 🌍", country:"🇺🇸 USA",         url:"https://cmu.edu",            scholarship:"SCS Dean's Fellowship",     tuition:"$63K/yr" },
+    { name:"ETH Zurich",        rank:"#4 🌍", country:"🇨🇭 Switzerland", url:"https://ethz.ch",            scholarship:"Excellence Scholarship",    tuition:"€1.5K/yr" },
+    { name:"NUS Singapore",     rank:"#5 🌍", country:"🇸🇬 Singapore",   url:"https://nus.edu.sg",         scholarship:"NUS Research Scholarship",  tuition:"$30K/yr" },
+    { name:"University of Toronto", rank:"#6", country:"🇨🇦 Canada",    url:"https://utoronto.ca",         scholarship:"Lester B. Pearson",         tuition:"$45K/yr" },
+  ],
+  "Business / MBA": [
+    { name:"Harvard Business",  rank:"#1 🌍", country:"🇺🇸 USA",         url:"https://hbs.edu",            scholarship:"HBS Fellowship Fund",       tuition:"$74K/yr" },
+    { name:"Wharton (UPenn)",   rank:"#2 🌍", country:"🇺🇸 USA",         url:"https://wharton.upenn.edu",  scholarship:"Wharton Fellowship",        tuition:"$82K/yr" },
+    { name:"London Business",   rank:"#3 🌍", country:"🇬🇧 UK",          url:"https://london.edu",         scholarship:"LBS Excellence Award",      tuition:"£43K/yr" },
+    { name:"INSEAD",            rank:"#4 🌍", country:"🇫🇷 France",      url:"https://insead.edu",         scholarship:"INSEAD Endowment Fund",     tuition:"€95K/yr" },
+    { name:"IIM Ahmedabad",     rank:"#1 🇮🇳", country:"🇮🇳 India",      url:"https://iima.ac.in",         scholarship:"Need-Based Aid",            tuition:"₹23L/yr" },
+    { name:"NUS Business",      rank:"#1 🇸🇬", country:"🇸🇬 Singapore",  url:"https://bschool.nus.edu.sg", scholarship:"ASEAN Scholarship",         tuition:"$55K/yr" },
+  ],
+  "Data Science / AI": [
+    { name:"MIT",               rank:"#1 🌍", country:"🇺🇸 USA",         url:"https://mit.edu",            scholarship:"MIT CSAIL Fellowship",      tuition:"$60K/yr" },
+    { name:"Stanford",          rank:"#2 🌍", country:"🇺🇸 USA",         url:"https://stanford.edu",       scholarship:"Stanford AI Lab Fellowship",tuition:"$62K/yr" },
+    { name:"Carnegie Mellon",   rank:"#3 🌍", country:"🇺🇸 USA",         url:"https://cmu.edu",            scholarship:"MLSE Fellowship",           tuition:"$63K/yr" },
+    { name:"TU Munich",         rank:"#1 🇩🇪", country:"🇩🇪 Germany",    url:"https://tum.de",             scholarship:"Deutschlandstipendium",     tuition:"€0/yr (free!)" },
+    { name:"University of Edinburgh",rank:"#1 🇬🇧",country:"🇬🇧 UK",    url:"https://ed.ac.uk",           scholarship:"Chevening / DAAD",          tuition:"£28K/yr" },
+    { name:"IIT Bombay",        rank:"#1 🇮🇳", country:"🇮🇳 India",      url:"https://iitb.ac.in",         scholarship:"MCM Scholarship",           tuition:"₹1L/yr" },
+  ],
+  "Design / UX": [
+    { name:"RISD",              rank:"#1 🌍", country:"🇺🇸 USA",         url:"https://risd.edu",           scholarship:"RISD Merit Award",          tuition:"$54K/yr" },
+    { name:"Royal College of Art",rank:"#2 🌍",country:"🇬🇧 UK",         url:"https://rca.ac.uk",          scholarship:"RCA Bursaries",             tuition:"£33K/yr" },
+    { name:"Parsons",           rank:"#3 🌍", country:"🇺🇸 USA",         url:"https://newschool.edu",      scholarship:"Presidential Scholarship",  tuition:"$52K/yr" },
+    { name:"NID Ahmedabad",     rank:"#1 🇮🇳", country:"🇮🇳 India",      url:"https://nid.edu",            scholarship:"Ministry of Education Aid", tuition:"₹3L/yr" },
+    { name:"Aalto University",  rank:"#1 🇫🇮", country:"🇫🇮 Finland",    url:"https://aalto.fi",           scholarship:"Aalto Scholarship",         tuition:"€15K/yr" },
+    { name:"Design Academy Eindhoven",rank:"EU", country:"🇳🇱 Netherlands",url:"https://designacademy.nl", scholarship:"DAE Scholarship",           tuition:"€9K/yr" },
+  ],
+  "Medicine": [
+    { name:"Harvard Medical",   rank:"#1 🌍", country:"🇺🇸 USA",         url:"https://hms.harvard.edu",    scholarship:"HMS Need-Based Aid",         tuition:"$68K/yr" },
+    { name:"Johns Hopkins",     rank:"#2 🌍", country:"🇺🇸 USA",         url:"https://hopkinsmedicine.org",scholarship:"Bloomberg Scholarship",      tuition:"$64K/yr" },
+    { name:"Oxford Medicine",   rank:"#1 🇬🇧", country:"🇬🇧 UK",         url:"https://ox.ac.uk",           scholarship:"Clarendon Scholarship",     tuition:"£38K/yr" },
+    { name:"AIIMS Delhi",       rank:"#1 🇮🇳", country:"🇮🇳 India",      url:"https://aiims.edu",          scholarship:"Merit-cum-Means",           tuition:"₹6K/yr" },
+    { name:"Karolinska Institute",rank:"#1 🇸🇪",country:"🇸🇪 Sweden",    url:"https://ki.se",              scholarship:"SI Scholarship",            tuition:"€0 (EU)" },
+    { name:"NUS Medicine",      rank:"#1 🇸🇬", country:"🇸🇬 Singapore",  url:"https://medicine.nus.edu.sg",scholarship:"MOH Scholarship",           tuition:"$45K/yr" },
+  ],
+  "Engineering": [
+    { name:"MIT",               rank:"#1 🌍", country:"🇺🇸 USA",         url:"https://mit.edu",            scholarship:"MIT Need-Based Aid",         tuition:"$60K/yr" },
+    { name:"Caltech",           rank:"#2 🌍", country:"🇺🇸 USA",         url:"https://caltech.edu",        scholarship:"Caltech Fellowship",        tuition:"$60K/yr" },
+    { name:"Imperial College",  rank:"#1 🇬🇧", country:"🇬🇧 UK",         url:"https://imperial.ac.uk",     scholarship:"President's Scholarship",   tuition:"£35K/yr" },
+    { name:"TU Munich",         rank:"#1 🇩🇪", country:"🇩🇪 Germany",    url:"https://tum.de",             scholarship:"Deutschlandstipendium",     tuition:"€0/yr (free!)" },
+    { name:"IIT Delhi",         rank:"#1 🇮🇳", country:"🇮🇳 India",      url:"https://iitd.ac.in",         scholarship:"MCM Scholarship",           tuition:"₹2L/yr" },
+    { name:"KAIST",             rank:"#1 🇰🇷", country:"🇰🇷 South Korea",url:"https://kaist.ac.kr",        scholarship:"KAIST Scholarship",         tuition:"₩0 (merit)" },
+  ],
+};
+
+const MAJOR_SCHOLARSHIPS = [
+  { name:"Fulbright Program",      flag:"🇺🇸", url:"https://fulbrightprogram.org",  for:"Study/Research in USA",      amount:"Fully Funded",    deadline:"Oct annually" },
+  { name:"Chevening Scholarship",  flag:"🇬🇧", url:"https://chevening.org",         for:"Masters in UK",              amount:"Fully Funded",    deadline:"Nov annually" },
+  { name:"DAAD Scholarship",       flag:"🇩🇪", url:"https://daad.de",               for:"Study in Germany",           amount:"€850-1200/month", deadline:"Oct annually" },
+  { name:"Erasmus+ Programme",     flag:"🇪🇺", url:"https://erasmus-plus.ec.europa.eu", for:"EU Exchange / Masters",  amount:"€500-1000/month", deadline:"Feb annually" },
+  { name:"Gates Cambridge",        flag:"🏛️", url:"https://gatescambridge.org",     for:"Cambridge (non-UK)",         amount:"Fully Funded",    deadline:"Dec annually" },
+  { name:"Commonwealth Scholarship",flag:"🌍", url:"https://cscuk.fcdo.gov.uk",     for:"Masters/PhD in UK",          amount:"Fully Funded",    deadline:"Nov annually" },
+  { name:"ADB Scholarship",        flag:"🌏", url:"https://adb.org/site/careers",   for:"Asia-Pacific Masters",       amount:"Fully Funded",    deadline:"Jan annually" },
+  { name:"Australia Awards",       flag:"🇦🇺", url:"https://australiaawards.gov.au", for:"Study in Australia",         amount:"Fully Funded",    deadline:"Apr annually" },
+  { name:"Korean Government (GKS)",flag:"🇰🇷", url:"https://studyinkorea.go.kr",    for:"Study in South Korea",       amount:"Fully Funded",    deadline:"Feb annually" },
+  { name:"MEXT Japan Scholarship", flag:"🇯🇵", url:"https://studyinjapan.go.jp",    for:"Study in Japan",             amount:"¥117K-145K/mo",   deadline:"May annually" },
+  { name:"Chinese Govt Scholarship",flag:"🇨🇳",url:"https://campuschina.org",        for:"Study in China",             amount:"Fully Funded",    deadline:"Mar annually" },
+  { name:"Schwarzman Scholars",    flag:"🌍", url:"https://schwarzmanscholars.org",  for:"Masters at Tsinghua",        amount:"Fully Funded",    deadline:"Sep annually" },
+];
+
+const RESOURCES = {
+  youtube: [
+    { title:"CS50 Harvard",           url:"https://youtube.com/c/cs50",          tags:["Python","JavaScript","C","SQL"],   desc:"Harvard's legendary intro to CS. Best free resource for beginners." },
+    { title:"Machine Learning by Ng", url:"https://youtube.com/c/stanfordmlcourse", tags:["Machine Learning","AI","Python"], desc:"Stanford's world-famous ML course by Andrew Ng." },
+    { title:"React – Dave Gray",      url:"https://youtube.com/c/DaveGrayTeachesCode", tags:["React","JavaScript"],        desc:"Comprehensive React JS full course, up-to-date 2024." },
+    { title:"SQL Full Course",        url:"https://youtube.com/c/freeCodeCamp",   tags:["SQL","Data Analysis"],             desc:"4-hour SQL bootcamp by freeCodeCamp. Free and complete." },
+    { title:"UI/UX Design Course",    url:"https://youtube.com/c/DesignCourse",   tags:["Figma","UI Design"],               desc:"Full UI/UX course covering Figma and design principles." },
+    { title:"Node.js – Traversy",     url:"https://youtube.com/c/TraversyMedia",  tags:["Node.js","JavaScript","Backend"],  desc:"Node.js & Express crash courses by Brad Traversy." },
+    { title:"Python Data Science",    url:"https://youtube.com/c/freeCodeCamp",   tags:["Python","Data Analysis","ML"],     desc:"Python for data science bootcamp, full course." },
+    { title:"Digital Marketing",      url:"https://youtube.com/c/Simplilearn",    tags:["Marketing","SEO"],                 desc:"Full digital marketing course by Simplilearn." },
+    { title:"Swift iOS Development",  url:"https://youtube.com/c/CodeWithChris",  tags:["Swift","iOS"],                     desc:"iOS development from zero to app store." },
+    { title:"Leadership Masterclass", url:"https://youtube.com/c/SimonSinek",     tags:["Leadership","Management"],         desc:"Simon Sinek on leadership, purpose and vision." },
+    { title:"Copywriting for Beginners",url:"https://youtube.com/c/AlexCattoni",  tags:["Copywriting","Marketing"],         desc:"Alex Cattoni teaches persuasive copywriting." },
+    { title:"MERN Stack Full Course", url:"https://youtube.com/c/JavaScriptMastery",tags:["React","Node.js","JavaScript"],  desc:"Full Stack MERN by JavaScript Mastery." },
+  ],
+  courses: [
+    { title:"Google Data Analytics (Coursera)", url:"https://coursera.org/professional-certificates/google-data-analytics", tags:["Data Analysis","SQL","Python"], desc:"8-course Google certificate. Job-ready in ~6 months.", price:"Free audit" },
+    { title:"IBM AI Engineering (Coursera)",    url:"https://coursera.org/professional-certificates/ai-engineer",           tags:["ML","AI","Python"],            desc:"IBM professional certificate in AI engineering.", price:"Free audit" },
+    { title:"Meta Front-End Developer",         url:"https://coursera.org/professional-certificates/meta-front-end-developer", tags:["React","JavaScript"],       desc:"Meta's official front-end dev certificate.", price:"Free audit" },
+    { title:"Complete Web Dev Bootcamp",        url:"https://udemy.com/course/the-complete-web-development-bootcamp",       tags:["JavaScript","React","Node.js"],desc:"Angela Yu's legendary bootcamp. 65+ hours.", price:"$14.99" },
+    { title:"100 Days of Python",               url:"https://udemy.com/course/100-days-of-code",                            tags:["Python","Backend"],            desc:"Dr. Angela Yu. Build 100 projects in 100 days.", price:"$14.99" },
+    { title:"UX Design Certificate (Google)",   url:"https://coursera.org/professional-certificates/google-ux-design",     tags:["Figma","UI Design"],           desc:"Google's 7-course UX design professional certificate.", price:"Free audit" },
+    { title:"AWS Cloud Practitioner",           url:"https://aws.amazon.com/training",                                      tags:["Backend","DevOps"],            desc:"Official AWS training. Prep for certification exam.", price:"Free" },
+    { title:"Digital Marketing Specialization", url:"https://coursera.org/specializations/digital-marketing",               tags:["Marketing","SEO"],             desc:"7-course specialization by University of Illinois.", price:"Free audit" },
+    { title:"ML Specialization (DeepLearning)", url:"https://coursera.org/specializations/machine-learning-introduction",  tags:["ML","Python","AI"],            desc:"Andrew Ng's updated ML course on Coursera.", price:"Free audit" },
+    { title:"Swift iOS Bootcamp",               url:"https://udemy.com/course/ios-13-app-development-bootcamp",             tags:["Swift","iOS"],                 desc:"Angela Yu. 55+ hours, 25+ apps.", price:"$14.99" },
+    { title:"SQL for Data Science",             url:"https://coursera.org/learn/sql-for-data-science",                     tags:["SQL","Data Analysis"],         desc:"University of California Davis. SQL fundamentals.", price:"Free audit" },
+    { title:"Leadership & Emotional Intelligence",url:"https://coursera.org/learn/emotional-intelligence-leadership",      tags:["Leadership","Management"],     desc:"Indian School of Business leadership course.", price:"Free audit" },
+  ],
+  jobs: [
+    { title:"LinkedIn Jobs",    url:"https://linkedin.com/jobs",   tags:["*"], desc:"World's largest professional job network. 900M+ users.", badge:"🌍 Global" },
+    { title:"Indeed",           url:"https://indeed.com",          tags:["*"], desc:"Largest job aggregator. Pulls from thousands of company sites.", badge:"🌍 Global" },
+    { title:"Wellfound",        url:"https://wellfound.com",       tags:["*"], desc:"Best for startup jobs. Apply directly with your profile.", badge:"🚀 Startups" },
+    { title:"Glassdoor",        url:"https://glassdoor.com",       tags:["*"], desc:"Jobs + salary data + company reviews.", badge:"🌍 Global" },
+    { title:"We Work Remotely", url:"https://weworkremotely.com",  tags:["*"], desc:"Top remote job board. Curated listings only.", badge:"🌐 Remote" },
+    { title:"Turing",           url:"https://turing.com",          tags:["Python","JavaScript","React","Node.js"], desc:"AI-matching developers with US companies.", badge:"🌐 Remote" },
+    { title:"Toptal",           url:"https://toptal.com",          tags:["Python","JavaScript","React","Figma"], desc:"Top 3% talent network. High-paying freelance & full-time.", badge:"🌐 Remote" },
+    { title:"Naukri.com",       url:"https://naukri.com",          tags:["*"], desc:"India's #1 job portal. 70M+ users, 300K+ active listings.", badge:"🇮🇳 India" },
+    { title:"Stack Overflow Jobs",url:"https://stackoverflow.com/jobs",tags:["Python","JavaScript","React","SQL"], desc:"Developer-focused. Filter by tech stack, remote, salary.", badge:"👩‍💻 Dev" },
+    { title:"Behance Jobs",     url:"https://behance.net/joblist", tags:["Figma","UI Design"],                    desc:"Adobe's creative job board for designers.", badge:"🎨 Design" },
+    { title:"Remotive",         url:"https://remotive.com",        tags:["*"], desc:"Curated remote tech jobs: dev, marketing, design.", badge:"🌐 Remote" },
+    { title:"Y Combinator Jobs",url:"https://workatastartup.com",  tags:["*"], desc:"Jobs at YC-backed startups. Top-tier opportunities.", badge:"🚀 YC" },
+  ],
+  internships: [
+    { title:"Google STEP",      url:"https://careers.google.com",        tags:["Python","JavaScript"], desc:"Software Technology Equity Program for first/second year CS students.", badge:"$7-9K/mo 🌍" },
+    { title:"Microsoft Explore",url:"https://careers.microsoft.com",     tags:["Python","JavaScript"], desc:"Rotational internship for underclassmen. PM + dev tracks.", badge:"$7K+/mo 🌍" },
+    { title:"Meta University",  url:"https://metacareers.com",            tags:["Python","React"],      desc:"Immersive engineering internship for underrepresented students.", badge:"$8K+/mo 🇺🇸" },
+    { title:"Goldman Sachs",    url:"https://goldmansachs.com/careers",   tags:["*"],                   desc:"Premier finance internship: trading, investment banking, tech.", badge:"$10K+/mo 🌍" },
+    { title:"UN Internship",    url:"https://careers.un.org/internship",  tags:["*"],                   desc:"Work with UN agencies worldwide. Policy and communications.", badge:"Stipend varies 🌍" },
+    { title:"NASA Internships",  url:"https://intern.nasa.gov",           tags:["Python","Data Analysis"],desc:"STEM internships at NASA centers. Research and engineering.", badge:"$700-1200/wk 🇺🇸" },
+    { title:"Internshala",      url:"https://internshala.com",            tags:["*"],                   desc:"India's largest internship platform. 40,000+ active internships.", badge:"Varies 🇮🇳" },
+    { title:"Forage",           url:"https://forage.com",                 tags:["*"],                   desc:"Free virtual work experience from Goldman, BCG, JPMorgan.", badge:"Free 🌍" },
+    { title:"Apple Internship", url:"https://apple.com/jobs",             tags:["Swift","iOS","Figma"],  desc:"Hardware, software, design and ops internships.", badge:"$8K+/mo 🌍" },
+    { title:"Spotify RADAR",    url:"https://lifeatspotify.com",          tags:["*"],                   desc:"Tech and business internships in NYC, London, Stockholm.", badge:"Competitive 🌍" },
+  ],
+  fellowships: [
+    { title:"Obama Foundation",    url:"https://obama.org/fellowship",        tags:["Leadership"],        desc:"2-year leadership program for emerging civic innovators.", badge:"Fully Funded 🌍" },
+    { title:"Google.org Fellowship",url:"https://google.org/fellowships",    tags:["Python","ML","AI"],  desc:"Google engineers embedded with nonprofits. Full salary.", badge:"Paid 🌍" },
+    { title:"Fulbright",           url:"https://fulbrightprogram.org",        tags:["*"],                 desc:"Study, research or teach abroad. US flagship scholarship.", badge:"Fully Funded 🌍" },
+    { title:"Y Combinator",        url:"https://startupschool.org",           tags:["*"],                 desc:"10-week program + $500K funding access for founders.", badge:"Free + Funding 🌍" },
+    { title:"MLH Fellowship",      url:"https://fellowship.mlh.io",           tags:["JavaScript","Python","React"], desc:"12-week remote. Contribute to open source projects.", badge:"$5-7K 🌍" },
+    { title:"Echoing Green",       url:"https://echoinggreen.org",            tags:["Leadership"],        desc:"Seed funding + support for bold social entrepreneurs.", badge:"$90K 🌍" },
+    { title:"Interact Fellowship", url:"https://joininteract.com",            tags:["*"],                 desc:"Community of exceptional young technologists backed by VCs.", badge:"$30K+ perks 🌍" },
+    { title:"Venture for America", url:"https://ventureforamerica.org",       tags:["*"],                 desc:"2-year fellowship at startups in emerging US cities.", badge:"$36-40K 🇺🇸" },
+    { title:"Teach For All",       url:"https://teachforall.org",             tags:["Leadership"],        desc:"Lead classrooms in underserved communities in 50+ countries.", badge:"Teacher salary 🌍" },
+    { title:"Schwarzman Scholars", url:"https://schwarzmanscholars.org",      tags:["Leadership","Management"], desc:"1-year master's at Tsinghua. World-class leadership network.", badge:"Fully Funded 🌍" },
+  ],
+};
+
+const PLATFORMS = [
+  { id:"linkedin",  icon:"💼", name:"LinkedIn",    color:"#0077b5", placeholder:"linkedin.com/in/yourname",  baseUrl:"https://linkedin.com/in/" },
+  { id:"github",    icon:"🐙", name:"GitHub",      color:"#6e40c9", placeholder:"github.com/yourusername",   baseUrl:"https://github.com/" },
+  { id:"leetcode",  icon:"🟠", name:"LeetCode",    color:"#ffa116", placeholder:"leetcode.com/u/yourname",   baseUrl:"https://leetcode.com/u/" },
+  { id:"twitter",   icon:"🐦", name:"Twitter / X", color:"#1d9bf0", placeholder:"@yourhandle",               baseUrl:"https://twitter.com/" },
+  { id:"portfolio", icon:"🌐", name:"Portfolio",   color:"#10b981", placeholder:"yoursite.com",              baseUrl:"https://" },
+  { id:"devto",     icon:"👩‍💻", name:"Dev.to",      color:"#a855f7", placeholder:"dev.to/yourusername",       baseUrl:"https://dev.to/" },
+  { id:"dribbble",  icon:"🏀", name:"Dribbble",    color:"#ea4c89", placeholder:"dribbble.com/yourname",     baseUrl:"https://dribbble.com/" },
+  { id:"behance",   icon:"🎨", name:"Behance",     color:"#053eff", placeholder:"behance.net/yourname",      baseUrl:"https://behance.net/" },
+];
+
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+function computeMetrics(skills, hrs, months) {
+  const s = Math.min(skills.length * 12, 60), h = Math.min((hrs / 8) * 25, 25), t = Math.min((months / 12) * 15, 15);
+  const prob = Math.round(Math.max(18, Math.min(97, s + h + t)));
+  const mo = (Math.max(2, Math.min(Math.round(40 / Math.max(hrs, 1)), months * 4)) / 4).toFixed(1);
+  const risk = prob < 55 || hrs < 2 ? "High" : prob < 75 ? "Medium" : "Low";
+  return { prob, mo, risk };
+}
+const riskColor = r => r === "Low" ? "#10b981" : r === "Medium" ? "#f59e0b" : "#f43f5e";
+const nowTs = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const fmtDate = d => new Date(d).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+const fmtBytes = b => b < 1048576 ? (b / 1024).toFixed(1) + " KB" : (b / 1048576).toFixed(1) + " MB";
+const initials = n => n.trim().split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+function toB64(file) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
+}
+async function callClaude(messages, system, maxTokens = 900) {
+  const body = { model: "claude-sonnet-4-20250514", max_tokens: maxTokens, messages };
+  if (system) body.system = system;
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return (await r.json()).content.map(b => b.text || "").join("");
+}
+function setRP(el, val, min, max) { if (el) el.style.setProperty("--p", ((val - min) / (max - min)) * 100 + "%"); }
+function resolveUrl(p, val) {
+  const v = val.trim();
+  if (!v) return null;
+  if (v.startsWith("http://") || v.startsWith("https://")) return v;
+  if (p.id === "twitter") return "https://twitter.com/" + v.replace(/^@/, "");
+  if (v.includes(".")) return "https://" + v.replace(/^https?:\/\//, "");
+  return p.baseUrl + v;
+}
+function matchResources(skills) {
+  if (!skills.length) return RESOURCES;
+  const score = (tags) => tags.includes("*") ? 1 : tags.filter(t => skills.includes(t)).length;
+  const sort = arr => [...arr].sort((a, b) => score(b.tags) - score(a.tags));
+  return { youtube: sort(RESOURCES.youtube), courses: sort(RESOURCES.courses), jobs: sort(RESOURCES.jobs), internships: sort(RESOURCES.internships), fellowships: sort(RESOURCES.fellowships) };
+}
+
+// ── STORAGE ─────────────────────────────────────────────────────────────────
+async function loadUsers() { try { const r = await window.storage.get("users"); return r ? JSON.parse(r.value) : {}; } catch { return {}; } }
+async function saveUsers(u) { try { await window.storage.set("users", JSON.stringify(u)); } catch {} }
+async function loadSessions(uid) { try { const r = await window.storage.get("sessions:" + uid); return r ? JSON.parse(r.value) : []; } catch { return []; } }
+async function saveSessions(uid, s) { try { await window.storage.set("sessions:" + uid, JSON.stringify(s)); } catch {} }
+async function loadSocials(uid) { try { const r = await window.storage.get("socials:" + uid); return r ? JSON.parse(r.value) : {}; } catch { return {}; } }
+async function saveSocials(uid, s) { try { await window.storage.set("socials:" + uid, JSON.stringify(s)); } catch {} }
+async function loadTodosDB(uid) { try { const r = await window.storage.get("todos2:" + uid); return r ? JSON.parse(r.value) : []; } catch { return []; } }
+async function saveTodosDB(uid, t) { try { await window.storage.set("todos2:" + uid, JSON.stringify(t)); } catch {} }
+
+// ── CSS ──────────────────────────────────────────────────────────────────────
+const css = `
+${FONTS}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d1a;--card:#13132a;--card2:#1a1a35;
+  --purple:#7c3aed;--purple2:#9d5cf6;--violet2:#a78bfa;--pink:#ec4899;--pink2:#f472b6;
+  --text:#f0f0ff;--muted:#6b6b8d;--muted2:#9494bb;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --green:#10b981;--red:#f43f5e;
+}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;top:-30%;left:-20%;width:60%;height:60%;background:radial-gradient(ellipse,rgba(124,58,237,0.12),transparent 70%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:50%;height:50%;background:radial-gradient(ellipse,rgba(236,72,153,0.08),transparent 70%);pointer-events:none;z-index:0}
+
+/* ── TOPNAV ── */
+.topnav{position:sticky;top:0;z-index:100;background:rgba(13,13,26,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 20px}
+.topnav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:12px;height:56px;overflow-x:auto}
+.topnav-inner::-webkit-scrollbar{display:none}
+.nav-logo{font-size:15px;font-weight:800;white-space:nowrap;margin-right:4px;flex-shrink:0}
+.nav-logo span{color:var(--violet2)}
+.nav-logo-icon{display:inline-block;margin-right:6px}
+.nav-tabs{display:flex;gap:2px;flex:1;overflow-x:auto}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;padding:6px 10px;border:none;background:transparent;color:var(--muted2);cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.nav-tab:hover{color:var(--text);background:rgba(255,255,255,0.05)}
+.nav-tab.active{color:var(--violet2);background:rgba(124,58,237,0.15)}
+.nav-user{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto}
+.nav-avatar{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff}
+.nav-name{font-size:12px;font-weight:600;color:var(--muted2)}
+.logout-btn{font-size:11px;font-weight:600;padding:5px 10px;border:1px solid var(--border2);border-radius:7px;background:transparent;color:var(--muted2);cursor:pointer;white-space:nowrap}
+.logout-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
+
+/* ── AUTH ── */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;z-index:1}
+.auth-card{width:100%;max-width:420px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px 32px}
+.auth-logo{text-align:center;font-size:28px;font-weight:800;margin-bottom:6px}
+.auth-logo span{color:var(--violet2)}
+.auth-tagline{text-align:center;font-size:13px;color:var(--muted2);margin-bottom:28px}
+.auth-tabs{display:flex;gap:6px;margin-bottom:24px;background:rgba(255,255,255,0.04);border-radius:12px;padding:4px}
+.auth-tab{flex:1;padding:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;border:none;background:transparent;color:var(--muted2);cursor:pointer;border-radius:9px;transition:all .2s}
+.auth-tab.active{background:var(--card2);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.auth-field{margin-bottom:14px}
+.auth-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);margin-bottom:6px;display:block}
+.auth-inp{width:100%;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;padding:12px 16px;border:1.5px solid var(--border2);border-radius:12px;background:rgba(255,255,255,0.04);outline:none;color:var(--text);transition:border-color .2s}
+.auth-inp:focus{border-color:rgba(157,92,246,0.5)}
+.auth-btn{width:100%;margin-top:6px;padding:14px;background:linear-gradient(135deg,var(--purple),var(--purple2),var(--pink));background-size:200%;animation:shift 4s ease infinite;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;border:none;border-radius:12px;cursor:pointer;box-shadow:0 8px 28px rgba(124,58,237,0.3)}
+.auth-err{font-size:12px;color:var(--red);text-align:center;margin-top:8px;padding:8px 12px;background:rgba(244,63,94,0.1);border-radius:8px}
+
+/* ── MAIN CALC ── */
+.page{max-width:640px;margin:0 auto;padding:32px 20px 100px;position:relative;z-index:1}
+.hero{text-align:center;margin-bottom:36px}
+.hero-pill{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;padding:5px 14px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.3);border-radius:100px;color:var(--violet2);margin-bottom:16px}
+.pill-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
+h1{font-size:clamp(28px,6vw,40px);font-weight:800;line-height:1.15;margin-bottom:12px}
+.grad{background:linear-gradient(135deg,var(--violet2),var(--pink2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:14px;color:var(--muted2);line-height:1.7}
+.steps{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
+.step-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px}
+.step-hdr{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.step-badge{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--purple2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.step-title{font-size:15px;font-weight:700}
+.step-sub{font-size:12px;color:var(--muted2);margin-top:2px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:10px}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);border-radius:100px;font-size:12px;font-weight:600;color:var(--violet2);cursor:pointer}
+.tag-x{color:var(--muted2);font-size:14px;line-height:1}
+.row{display:flex;gap:8px}
+.field{flex:1;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:10px 14px;border:1.5px solid var(--border2);border-radius:10px;background:rgba(255,255,255,0.04);outline:none;color:var(--text);transition:border-color .2s}
+.field:focus{border-color:rgba(157,92,246,0.5)}
+.field::placeholder{color:var(--muted)}
+.pill-btn{font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;padding:10px 16px;border:1.5px solid rgba(124,58,237,0.4);border-radius:10px;background:rgba(124,58,237,0.1);color:var(--violet2);cursor:pointer;white-space:nowrap}
+.suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sugg{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border:1px solid var(--border2);border-radius:100px;background:transparent;color:var(--muted2);cursor:pointer}
+.sugg:hover{border-color:rgba(157,92,246,0.4);color:var(--violet2)}
+.sl-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sl-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sl-lbl{font-size:12px;font-weight:600;color:var(--muted2)}
+.sl-val{font-size:20px;font-weight:800}
+.sl-unit{font-size:11px;color:var(--muted2);margin-left:2px}
+.sl-hint{font-size:11px;color:var(--muted);margin-top:6px}
+input[type=range]{width:100%;height:5px;border-radius:5px;-webkit-appearance:none;background:linear-gradient(90deg,var(--purple2) var(--p,50%),rgba(255,255,255,0.1) var(--p,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,var(--purple2),var(--pink2));cursor:pointer;box-shadow:0 0 8px rgba(124,58,237,0.5)}
+.ta{width:100%;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:12px 14px;border:1.5px solid var(--border2);border-radius:12px;background:rgba(255,255,255,0.04);outline:none;color:var(--text);resize:vertical;min-height:80px;line-height:1.6}
+.ta:focus{border-color:rgba(157,92,246,0.5)}
+.ta::placeholder{color:var(--muted)}
+.err-msg{color:var(--red);font-size:13px;text-align:center;margin-bottom:12px}
+.cta{width:100%;padding:18px;background:linear-gradient(135deg,var(--purple),var(--purple2),var(--pink));background-size:200%;animation:shift 4s ease infinite;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:800;border:none;border-radius:16px;cursor:pointer;box-shadow:0 8px 32px rgba(124,58,237,0.35);transition:transform .15s,opacity .15s;margin-bottom:28px}
+.cta:hover{transform:translateY(-2px)}
+.cta:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ── RESULTS ── */
+.results{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:28px}
+.loader,.roadmap-loader{display:flex;flex-direction:column;align-items:center;gap:14px;padding:48px 0}
+.loader-ring,.roadmap-loader-ring{width:44px;height:44px;border-radius:50%;border:3px solid rgba(124,58,237,0.2);border-top-color:var(--purple2);animation:spin 1s linear infinite}
+.loader-txt,.roadmap-loader-txt{font-size:13px;color:var(--muted2);font-weight:500}
+.metrics-row{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.met{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:16px 14px;text-align:center}
+.met.main{background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(236,72,153,0.06));border-color:rgba(124,58,237,0.25)}
+.met-ico{font-size:18px;margin-bottom:6px}
+.met-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2);margin-bottom:4px}
+.met-num{font-size:34px;font-weight:800;background:linear-gradient(135deg,var(--violet2),var(--pink2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1}
+.met-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.pbar{height:4px;background:rgba(255,255,255,0.06);border-radius:4px;margin-top:10px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--purple2),var(--pink2));border-radius:4px;transition:width 1s ease}
+.risk-row{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px}
+.rdot{width:6px;height:6px;border-radius:50%}
+.mentor-card{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-top:16px}
+.mentor-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.mentor-ava{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.mentor-name{font-size:13px;font-weight:700}
+.mentor-role{font-size:11px;color:var(--muted2)}
+.mentor-body{font-size:13px;color:var(--muted2);line-height:1.8;white-space:pre-wrap}
+.chat-card{background:var(--card2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-top:16px}
+.chat-top{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.chat-ava{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.chat-name{font-size:13px;font-weight:700}
+.chat-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2);margin-top:1px}
+.ondot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.badge{font-size:10px;font-weight:700;padding:3px 8px;background:linear-gradient(135deg,var(--purple),var(--pink));border-radius:100px;color:#fff;margin-left:auto}
+.msgs{max-height:360px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scrollbar-width:thin}
+.msg{display:flex;gap:8px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.mava{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.msg.user .mava{background:rgba(255,255,255,0.08)}
+.mcontent{display:flex;flex-direction:column;gap:3px;max-width:82%}
+.msg.user .mcontent{align-items:flex-end}
+.mbubble{font-size:13px;line-height:1.7;padding:10px 14px;border-radius:14px;background:var(--card);border:1px solid var(--border);color:var(--text)}
+.msg.user .mbubble{background:rgba(124,58,237,0.15);border-color:rgba(124,58,237,0.3);color:var(--text)}
+.mtime{font-size:10px;color:var(--muted);margin:0 4px}
+.msg-img{max-width:220px;border-radius:10px;display:block;margin-bottom:6px}
+.msg-file{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;background:rgba(255,255,255,0.05);border-radius:8px;margin-bottom:4px}
+.typing{display:flex;gap:4px;padding:4px 2px}
+.td{width:6px;height:6px;border-radius:50%;background:var(--muted2);animation:bounce 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+.qqs{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border)}
+.qqlbl{font-size:10px;font-weight:700;color:var(--muted);align-self:center}
+.qqbtn{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;padding:5px 10px;border:1px solid var(--border2);border-radius:100px;background:transparent;color:var(--muted2);cursor:pointer}
+.qqbtn:hover{border-color:rgba(157,92,246,0.4);color:var(--violet2)}
+.up-strip{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(124,58,237,0.08);border-top:1px solid var(--border)}
+.up-thumb{width:36px;height:36px;border-radius:8px;object-fit:cover}
+.up-ico{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;font-size:18px}
+.up-info{flex:1;min-width:0}
+.up-name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.up-sz{font-size:10px;color:var(--muted2)}
+.up-rm{background:transparent;border:none;color:var(--muted2);font-size:18px;cursor:pointer;padding:4px}
+.chat-in{display:flex;align-items:flex-end;gap:8px;padding:10px 12px;border-top:1px solid var(--border)}
+.clip{width:34px;height:34px;border-radius:9px;border:1px solid var(--border2);background:transparent;color:var(--muted2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.clip:hover{border-color:rgba(157,92,246,0.4);color:var(--violet2)}
+.chat-ta{flex:1;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:10px;background:rgba(255,255,255,0.04);outline:none;color:var(--text);resize:none;line-height:1.5;max-height:100px;overflow-y:auto}
+.chat-ta:focus{border-color:rgba(157,92,246,0.4)}
+.send{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--purple),var(--pink));border:none;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.send:disabled{opacity:.35;cursor:not-allowed}
+
+/* ── HISTORY ── */
+.hist-wrap{max-width:700px;margin:0 auto;padding:28px 20px 100px;position:relative;z-index:1}
+.hist-hdr{font-size:20px;font-weight:800;margin-bottom:20px}
+.hist-empty{text-align:center;padding:60px 20px;color:var(--muted2);font-size:14px}
+.sess-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px}
+.sess-top{display:flex;gap:10px;margin-bottom:12px}
+.sess-icon{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.sess-goal{font-size:13px;font-weight:700;line-height:1.5;flex:1}
+.sess-date{font-size:11px;color:var(--muted2);margin-top:2px}
+.sess-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.sess-tag{font-size:10px;font-weight:600;padding:3px 9px;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);border-radius:100px;color:var(--violet2)}
+.sess-metrics{display:flex;gap:10px;margin-bottom:12px}
+.sess-met{flex:1;background:var(--card2);border-radius:10px;padding:8px 10px;text-align:center}
+.sess-met-v{font-size:16px;font-weight:800}
+.sess-met-l{font-size:9px;color:var(--muted2);margin-top:1px}
+.sess-btns{display:flex;gap:8px}
+.sess-btn{flex:1;padding:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;border-radius:10px;cursor:pointer;transition:all .15s}
+.sess-btn.primary{background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.35);color:var(--violet2)}
+.sess-btn.danger{background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.2);color:#f87171}
+
+/* ── RESOURCES ── */
+.res-wrap{max-width:960px;margin:0 auto;padding:28px 20px 100px;position:relative;z-index:1}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:24px;padding:4px;background:rgba(255,255,255,0.03);border-radius:14px}
+.filter-btn{font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;padding:7px 14px;border:none;background:transparent;color:var(--muted2);cursor:pointer;border-radius:10px;transition:all .15s;white-space:nowrap}
+.filter-btn.active{background:rgba(124,58,237,0.18);color:var(--violet2)}
+.filter-btn:hover:not(.active){background:rgba(255,255,255,0.05);color:var(--text)}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin:28px 0 14px}
+.sec-icon{font-size:18px}
+.sec-title{font-size:16px;font-weight:800;flex:1}
+.sec-count{font-size:11px;font-weight:600;padding:3px 10px;background:rgba(124,58,237,0.1);border:1px solid var(--border2);border-radius:100px;color:var(--violet2)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:4px}
+.res-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:8px;transition:all .2s;position:relative;overflow:hidden}
+.res-card:hover{border-color:rgba(157,92,246,0.4);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.25)}
+.res-card-title{font-size:13px;font-weight:700;line-height:1.4}
+.res-card-desc{font-size:11px;color:var(--muted2);line-height:1.6;flex:1}
+.res-card-badge{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;align-self:flex-start}
+.res-arrow{position:absolute;top:12px;right:12px;font-size:12px;color:var(--muted);opacity:.4}
+.social-plat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.social-plat-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:18px;text-decoration:none;color:inherit;display:flex;gap:14px;align-items:flex-start;transition:all .2s}
+.social-plat-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.25)}
+.sp-icon{font-size:28px;flex-shrink:0;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.sp-name{font-size:14px;font-weight:800;margin-bottom:2px}
+.sp-desc{font-size:11px;color:var(--muted2);line-height:1.6;margin-bottom:6px}
+.sp-meta{display:flex;gap:8px;flex-wrap:wrap}
+.sp-region{font-size:10px;color:var(--muted2)}
+.sp-best{font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;background:rgba(124,58,237,0.1);color:var(--violet2)}
+
+/* ── ROADMAP ── */
+.roadmap-wrap{max-width:780px;margin:0 auto;padding:28px 20px 100px;position:relative;z-index:1}
+.roadmap-hero{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
+.roadmap-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.08),transparent 60%);pointer-events:none}
+.roadmap-title{font-size:20px;font-weight:800;margin-bottom:6px}
+.roadmap-goal-text{font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:16px}
+.roadmap-meta{display:flex;gap:10px;flex-wrap:wrap}
+.rm-meta-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(124,58,237,0.1);border:1px solid var(--border2);border-radius:100px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--violet2)}
+.roadmap-progress-summary{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:18px}
+.rps-icon{font-size:20px}
+.rps-info{flex:1}
+.rps-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.rps-bar{height:6px;background:rgba(255,255,255,0.07);border-radius:6px;overflow:hidden}
+.rps-fill{height:100%;background:linear-gradient(90deg,var(--purple2),var(--pink2));border-radius:6px;transition:width .6s ease}
+.rps-count{font-size:12px;color:var(--muted2);font-weight:600;white-space:nowrap}
+.regen-btn{font-size:11px;font-weight:600;padding:6px 12px;background:rgba(124,58,237,0.1);border:1px solid var(--border2);border-radius:100px;color:var(--violet2);cursor:pointer;white-space:nowrap}
+.phase-block{margin-bottom:16px}
+.phase-header{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:14px 14px 0 0;cursor:pointer;user-select:none}
+.phase-num{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+.phase-info{flex:1}
+.phase-name{font-size:14px;font-weight:800;color:#fff}
+.phase-weeks-label{font-size:11px;opacity:.7;margin-top:1px;color:#fff}
+.phase-chevron{font-size:11px;color:rgba(255,255,255,0.5);transition:transform .2s}
+.phase-chevron.open{transform:rotate(180deg)}
+.phase-progress-bar{height:3px;background:rgba(255,255,255,0.1)}
+.phase-progress-fill{height:100%;transition:width .8s ease}
+.weeks-list{background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px}
+.week-row{padding:16px 18px;border-bottom:1px solid var(--border2)}
+.week-row:last-child{border-bottom:none}
+.week-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.week-badge{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.week-title{font-size:13px;font-weight:700;flex:1}
+.week-hrs{font-size:11px;color:var(--muted2)}
+.week-tasks-list{display:flex;flex-direction:column;gap:7px;padding-left:42px}
+.week-task{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted2);line-height:1.5}
+.task-check{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--border2);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:9px}
+.task-check.done{background:var(--green);border-color:var(--green);color:#fff}
+.task-text.done{text-decoration:line-through;opacity:.4}
+.milestone-pill{display:inline-flex;align-items:center;gap:5px;margin-top:8px;margin-left:42px;font-size:11px;font-weight:600;padding:4px 12px;border-radius:100px;border:1px solid}
+.roadmap-generate-wrap{text-align:center;padding:48px 20px}
+.generate-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:linear-gradient(135deg,var(--purple),var(--purple2),var(--pink));background-size:200%;animation:shift 4s ease infinite;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;border:none;border-radius:14px;cursor:pointer;box-shadow:0 8px 28px rgba(124,58,237,0.3)}
+.generate-btn:disabled{opacity:.5;cursor:not-allowed}
+.rm-err{font-size:13px;color:#fda4af;background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;text-align:center}
+
+/* ── TODO ── */
+.todo-wrap{max-width:680px;margin:0 auto;padding:28px 20px 100px;position:relative;z-index:1}
+.todo-stats{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+@media(max-width:500px){.todo-stats{grid-template-columns:1fr 1fr}}
+.todo-stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;text-align:center}
+.todo-stat-card.main{background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(236,72,153,0.06));border-color:rgba(124,58,237,0.2)}
+.todo-stat-num{font-size:28px;font-weight:800}
+.todo-stat-lbl{font-size:11px;color:var(--muted2);margin-top:2px}
+.todo-stat-bar{height:4px;background:rgba(255,255,255,0.06);border-radius:4px;margin-top:8px;overflow:hidden}
+.todo-stat-fill{height:100%;background:linear-gradient(90deg,var(--purple2),var(--pink2));border-radius:4px;transition:width .8s ease}
+.todo-cats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.todo-cat-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:100px;border:1px solid;font-size:12px;font-weight:600}
+.todo-add-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px}
+.todo-add-title{font-size:14px;font-weight:700;margin-bottom:12px}
+.todo-input{width:100%;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;padding:11px 14px;border:1.5px solid var(--border2);border-radius:11px;background:rgba(255,255,255,0.04);outline:none;color:var(--text);margin-bottom:10px}
+.todo-input:focus{border-color:rgba(157,92,246,0.4)}
+.todo-input::placeholder{color:var(--muted)}
+.todo-add-row{display:flex;gap:8px;align-items:center}
+.todo-select-wrap{flex:1}
+.todo-select{width:100%;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;padding:9px 10px;border:1.5px solid var(--border2);border-radius:10px;background:var(--card2);color:var(--text);outline:none;cursor:pointer}
+.todo-add-btn{padding:9px 18px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff;border:none;border-radius:10px;cursor:pointer}
+.todo-list{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.todo-item{display:flex;align-items:flex-start;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;transition:opacity .2s}
+.todo-item.done{opacity:.65}
+.todo-check{width:20px;height:20px;border-radius:6px;border:1.5px solid;flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;transition:all .15s}
+.todo-item-body{flex:1;min-width:0}
+.todo-item-text{font-size:13px;font-weight:600;line-height:1.5;margin-bottom:5px}
+.todo-item-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:11px}
+.todo-del{background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+.todo-del:hover{color:var(--red)}
+/* Work Analysis */
+.work-analysis{margin-top:28px}
+.wa-title{font-size:16px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.wa-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.wa-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.wa-card-num{font-size:24px;font-weight:800;background:linear-gradient(135deg,var(--violet2),var(--pink2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.wa-card-lbl{font-size:11px;color:var(--muted2);margin-top:3px}
+.wa-bar-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
+.wa-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.wa-bar-row:last-child{margin-bottom:0}
+.wa-bar-label{width:70px;font-size:12px;font-weight:600;color:var(--muted2);text-transform:capitalize;flex-shrink:0}
+.wa-bar{flex:1;height:8px;background:rgba(255,255,255,0.05);border-radius:8px;overflow:hidden}
+.wa-bar-fill{height:100%;border-radius:8px;transition:width .8s ease}
+.wa-bar-count{width:28px;font-size:11px;color:var(--muted2);text-align:right;flex-shrink:0}
+
+/* ── HIGHER STUDY ── */
+.study-wrap{max-width:960px;margin:0 auto;padding:28px 20px 100px;position:relative;z-index:1}
+.study-hero{display:flex;align-items:center;gap:16px;margin-bottom:24px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px 24px;position:relative;overflow:hidden}
+.study-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.08),transparent 60%);pointer-events:none}
+.study-hero-icon{font-size:36px;flex-shrink:0}
+.study-hero-title{font-size:20px;font-weight:800;margin-bottom:4px}
+.study-hero-sub{font-size:13px;color:var(--muted2);line-height:1.6}
+.major-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.major-tab{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;padding:7px 14px;border:1.5px solid var(--border2);border-radius:100px;background:transparent;color:var(--muted2);cursor:pointer;transition:all .15s}
+.major-tab.active{background:rgba(124,58,237,0.15);border-color:rgba(157,92,246,0.5);color:var(--violet2)}
+.uni-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.uni-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-decoration:none;color:inherit;display:flex;gap:14px;align-items:flex-start;transition:all .2s}
+.uni-card:hover{border-color:rgba(157,92,246,0.4);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.uni-rank{font-size:13px;font-weight:800;color:var(--violet2);width:36px;flex-shrink:0;padding-top:2px}
+.uni-body{flex:1}
+.uni-name{font-size:14px;font-weight:800;margin-bottom:3px}
+.uni-country{font-size:12px;color:var(--muted2);margin-bottom:8px}
+.uni-scholarship{font-size:11px;color:#f59e0b;margin-bottom:3px}
+.uni-tuition{font-size:11px;color:var(--muted2)}
+.scholar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.scholar-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-decoration:none;color:inherit;display:flex;gap:12px;align-items:flex-start;transition:all .2s}
+.scholar-card:hover{border-color:rgba(157,92,246,0.4);transform:translateY(-2px)}
+.scholar-flag{font-size:24px;flex-shrink:0;width:36px;text-align:center}
+.scholar-body{flex:1}
+.scholar-name{font-size:13px;font-weight:800;margin-bottom:3px}
+.scholar-for{font-size:11px;color:var(--muted2);margin-bottom:8px;line-height:1.5}
+.scholar-bottom{display:flex;gap:8px;flex-wrap:wrap}
+.scholar-amount{font-size:11px;font-weight:600;padding:2px 9px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:100px;color:#10b981}
+.scholar-deadline{font-size:11px;font-weight:600;padding:2px 9px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:100px;color:#f59e0b}
+
+/* ── LANGUAGE ── */
+.lang-wrap{max-width:960px;margin:0 auto;padding:28px 20px 100px;position:relative;z-index:1}
+.lang-hero{display:flex;align-items:center;gap:16px;margin-bottom:24px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px 24px;position:relative;overflow:hidden}
+.lang-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.08),transparent 60%);pointer-events:none}
+.lang-hero-icon{font-size:36px;flex-shrink:0}
+.lang-hero-title{font-size:20px;font-weight:800;margin-bottom:4px}
+.lang-hero-sub{font-size:13px;color:var(--muted2);line-height:1.6}
+.lang-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:28px}
+.lang-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s}
+.lang-card:hover{border-color:rgba(157,92,246,0.4);transform:translateY(-2px)}
+.lang-card.selected{border-color:rgba(124,58,237,0.7);background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(236,72,153,0.08));box-shadow:0 0 0 2px rgba(124,58,237,0.2)}
+.lang-flag{font-size:28px;margin-bottom:6px}
+.lang-name{font-size:13px;font-weight:800;margin-bottom:2px}
+.lang-native{font-size:11px;color:var(--muted2);margin-bottom:3px}
+.lang-speakers{font-size:10px;color:var(--muted);margin-bottom:4px}
+.lang-diff{font-size:12px;color:#f59e0b}
+.lang-selected-header{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px 20px;margin-bottom:20px}
+.lang-apps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:6px}
+.lang-app-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-decoration:none;color:inherit;transition:all .2s;display:flex;flex-direction:column;gap:6px}
+.lang-app-card:hover{border-color:rgba(157,92,246,0.4);transform:translateY(-2px)}
+.lang-app-icon{font-size:24px}
+.lang-app-name{font-size:13px;font-weight:800}
+.lang-app-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(124,58,237,0.1);color:var(--violet2);align-self:flex-start}
+.lang-app-desc{font-size:11px;color:var(--muted2);line-height:1.5}
+.yt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:6px}
+.yt-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-decoration:none;color:inherit;transition:all .2s;display:flex;flex-direction:column;gap:6px}
+.yt-card:hover{border-color:rgba(157,92,246,0.4);transform:translateY(-2px)}
+.yt-thumb{font-size:24px}
+.yt-title{font-size:13px;font-weight:800}
+.yt-channel{font-size:10px;color:var(--muted2)}
+.yt-desc{font-size:11px;color:var(--muted2);line-height:1.5;flex:1}
+.yt-badge{font-size:10px;font-weight:700;padding:2px 8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:100px;color:#f87171;align-self:flex-start}
+
+/* ── PROFILE ── */
+.profile-wrap{max-width:680px;margin:0 auto;padding:28px 20px 100px;position:relative;z-index:1}
+.profile-hero{display:flex;align-items:center;gap:20px;margin-bottom:28px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px;position:relative;overflow:hidden}
+.profile-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,0.07),transparent 60%);pointer-events:none}
+.profile-avatar-big{width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,var(--purple),var(--pink));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 6px 20px rgba(124,58,237,0.4)}
+.profile-name{font-size:18px;font-weight:800;margin-bottom:2px}
+.profile-email{font-size:12px;color:var(--muted2);margin-bottom:8px}
+.profile-stats{display:flex;gap:18px}
+.profile-stat-val{font-size:18px;font-weight:800;background:linear-gradient(135deg,var(--violet2),var(--pink2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.profile-stat-lbl{font-size:10px;color:var(--muted);margin-top:1px}
+.socials-title{font-size:16px;font-weight:800;margin-bottom:6px}
+.socials-sub{font-size:12px;color:var(--muted2);margin-bottom:14px;line-height:1.5}
+.platform-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:22px}
+.platform-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 10px;border-radius:14px;border:1.5px solid var(--border2);background:var(--card);cursor:pointer;transition:all .2s;text-decoration:none;color:inherit;position:relative}
+.platform-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.platform-btn.unlinked{opacity:.5}
+.platform-btn.unlinked:hover{opacity:.85}
+.platform-icon{font-size:26px}
+.platform-name{font-size:12px;font-weight:700}
+.platform-handle{font-size:10px;color:var(--muted2);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.platform-status{position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%}
+.platform-btn.linked .platform-status{background:var(--green)}
+.platform-btn.unlinked .platform-status{background:var(--muted)}
+.platform-add-hint{font-size:9px;color:var(--muted)}
+.socials-form{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.socials-form-title{font-size:14px;font-weight:700;margin-bottom:2px}
+.social-field-row{display:flex;align-items:center;gap:10px}
+.social-field-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.social-field-wrap{flex:1;display:flex;flex-direction:column;gap:3px}
+.social-field-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2)}
+.social-inp{font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:9px;background:rgba(255,255,255,0.04);outline:none;color:var(--text);transition:border-color .2s;width:100%}
+.social-inp:focus{border-color:rgba(157,92,246,0.5)}
+.social-inp::placeholder{color:var(--muted)}
+.save-socials-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--purple),var(--purple2),var(--pink));background-size:200%;animation:shift 4s ease infinite;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;border:none;border-radius:11px;cursor:pointer;margin-top:4px}
+.save-success{font-size:12px;color:var(--green);text-align:center;font-weight:600;margin-top:4px}
+
+/* ── SHARED ── */
+.footer{text-align:center;margin-top:60px;font-size:12px;color:var(--muted);font-weight:500}
+.footer span{color:var(--violet2);margin:0 3px}
+
+@keyframes shift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes up{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+[data-theme="light"]{--bg:#f4f4f0;--card:#ffffff;--card2:#ebebeb;--text:#1a1a2e;--muted:#999aaa;--muted2:#5a5a78;--border:rgba(0,0,0,.07);--border2:rgba(0,0,0,.13);--violet2:#6d28d9;}
+[data-theme="light"] .topnav{background:rgba(244,244,240,.92)!important;}
+[data-theme="light"] .auth-card{background:#ffffff;}
+[data-theme="light"] .auth-inp{background:rgba(0,0,0,.03);color:#1a1a2e;}
+[data-theme="light"] .card,.chat-card,.mentor-card{background:#ffffff;}
+body{transition:background .3s,color .3s;}
+
+@media(max-width:480px){
+  .metrics-row{grid-template-columns:1fr 1fr 1fr}
+  .met-num{font-size:24px}
+  .sl-grid{grid-template-columns:1fr}
+  .uni-grid,.scholar-grid,.lang-apps-grid,.yt-grid{grid-template-columns:1fr}
+}
+`;
+
+// ── APP COMPONENT ────────────────────────────────────────────────────────────
+
+// ─── MEME REACTIONS ─────────────────────────────────────────────────────────
+function getMeme(action, prob) {
+  prob = prob || 0;
+  if (action === "analysis_done") {
+    if (prob >= 85) return { e:"🎓", t:"Basically already hired!", s:"Top tier energy.", c:"#10b981" };
+    if (prob >= 70) return { e:"📚", t:"Looking really solid!", s:"Keep that momentum.", c:"#a78bfa" };
+    if (prob >= 50) return { e:"✨", t:"Still growing, still growing!", s:"You're on the right track.", c:"#f59e0b" };
+    if (prob >= 30) return { e:"😅", t:"Me vs 100 job applications", s:"Time to level up!", c:"#f59e0b" };
+    return { e:"🍌", t:"We need to talk...", s:"Let's fix this together.", c:"#f43f5e" };
+  }
+  const M = {
+    roadmap_done: { e:"🐒", t:"Time to lock in.", s:"No excuses. Let's go.", c:"#7c3aed" },
+    todo_done:    { e:"😁", t:"ALL TASKS DONE!!", s:"Absolute legend fr.", c:"#10b981" },
+    login:        { e:"🫨", t:"WAIT you're back!!", s:"Let's get this bread.", c:"#a78bfa" },
+    signup:       { e:"🎀", t:"Welcome to CareerOS!", s:"Your journey starts now.", c:"#ec4899" },
+    resources:    { e:"💼", t:"Resource mode: ON", s:"Jobs don't apply themselves.", c:"#3b82f6" },
+    error:        { e:"😿", t:"Something broke...", s:"Try again bestie.", c:"#f43f5e" },
+    zen:          { e:"🧘", t:"Girl, Whatever.", s:"You got this. Unbothered.", c:"#10b981" },
+    sign:         { e:"✨", t:"This is a sign.", s:"Idk for what but take it.", c:"#a78bfa" },
+  };
+  return M[action] || null;
+}
+
+export default function App() {
+  // ── Auth state
+  const [screen, setScreen]       = useState("auth");
+  const [dark, setDark]           = useState(true);
+  const [meme, setMeme]           = useState(null);
+  const [memeOn, setMemeOn]       = useState(false);
+  const memeT                     = useRef(null);
+  const [authTab, setAuthTab]     = useState("login");
+  const [authName, setAuthName]   = useState("");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPass, setAuthPass]   = useState("");
+  const [authErr, setAuthErr]     = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [user, setUser]           = useState(null);
+  const [sessions, setSessions]   = useState([]);
+
+  // ── Calculator state
+  const [skills, setSkills]   = useState([]);
+  const [skillInp, setSkillInp] = useState("");
+  const [hrs, setHrs]         = useState(3);
+  const [months, setMonths]   = useState(6);
+  const [goal, setGoal]       = useState("");
+  const [running, setRunning] = useState(false);
+  const [metrics, setMetrics] = useState(null);
+  const [assess, setAssess]   = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr]         = useState("");
+  const [matched, setMatched] = useState(null);
+
+  // ── Chat state
+  const [msgs, setMsgs]         = useState([]);
+  const [ci, setCi]             = useState("");
+  const [chatBusy, setChatBusy] = useState(false);
+  const [ctx, setCtx]           = useState(null);
+  const [pending, setPending]   = useState(null);
+  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const apiHistory = useRef([]);
+
+  // ── Roadmap state (ALL at top level - no conditional hooks)
+  const [roadmap, setRoadmap]               = useState(null);
+  const [roadmapLoading, setRoadmapLoading] = useState(false);
+  const [roadmapErr, setRoadmapErr]         = useState("");
+  const [openPhases, setOpenPhases]         = useState([]);
+  const [checkedTasks, setCheckedTasks]     = useState({});
+
+  // ── Todo state
+  const [todos, setTodos]             = useState([]);
+  const [todoInput, setTodoInput]     = useState("");
+  const [todoPriority, setTodoPriority] = useState("medium");
+  const [todoCategory, setTodoCategory] = useState("study");
+  const [todoFilter, setTodoFilter]   = useState("all");
+
+  // ── Higher study state
+  const [studyMajor, setStudyMajor] = useState("Computer Science");
+
+  // ── Language state
+  const [selectedLang, setSelectedLang] = useState(null);
+
+  // ── Profile/Socials state
+  const [socials, setSocials]         = useState({});
+  const [socialInputs, setSocialInputs] = useState({});
+  const [socialSaved, setSocialSaved] = useState(false);
+
+  // ── Resources state
+  const [resFilter, setResFilter] = useState("All");
+
+  // ── Refs
+  const bottomRef  = useRef(null);
+  const fileRef    = useRef(null);
+  const hrsRef     = useRef(null);
+  const moRef      = useRef(null);
+  const resultsRef = useRef(null);
+
+  useEffect(function() {
+    document.body.style.background = dark ? "#0d0d1a" : "#f4f4f0";
+    document.body.style.color = dark ? "#f0f0ff" : "#1a1a2e";
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  }, [dark]);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
+  useEffect(() => { setRP(hrsRef.current, hrs, 0.5, 12); }, [hrs]);
+  useEffect(() => { setRP(moRef.current, months, 1, 24); }, [months]);
+  useEffect(() => () => { if (pending?.url) URL.revokeObjectURL(pending.url); }, [pending]);
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  async function handleAuth() {
+    setAuthErr(""); setAuthLoading(true);
+    const email = authEmail.trim().toLowerCase(), pass = authPass.trim();
+    if (!email || !pass) { setAuthErr("Please fill in all fields."); setAuthLoading(false); return; }
+    if (authTab === "signup" && !authName.trim()) { setAuthErr("Please enter your name."); setAuthLoading(false); return; }
+    const users = await loadUsers();
+    if (authTab === "signup") {
+      if (users[email]) { setAuthErr("Account already exists."); setAuthLoading(false); return; }
+      const f = { id: email, name: authName.trim(), email, pass };
+      users[email] = f; await saveUsers(users);
+      setUser(f); setSessions([]); setTodos([]); setSocials({}); setSocialInputs({});
+      setScreen("app"); setTimeout(()=>showMeme("signup"), 700);
+    } else {
+      const f = users[email];
+      if (!f || f.pass !== pass) { setAuthErr("Invalid email or password."); setAuthLoading(false); return; }
+      const [uSessions, uSocials, uTodos] = await Promise.all([loadSessions(f.id), loadSocials(f.id), loadTodosDB(f.id)]);
+      setUser(f); setSessions(uSessions); setSocials(uSocials); setSocialInputs(uSocials); setTodos(uTodos);
+      setScreen("app"); setTimeout(()=>showMeme("login"), 700);
+    }
+    setAuthLoading(false);
+  }
+
+  const showMeme = (action, prob=0) => {
+    const r = getMeme(action, prob);
+    if (!r) return;
+    if (memeT.current) clearTimeout(memeT.current);
+    setMeme(r); setMemeOn(true);
+    memeT.current = setTimeout(() => setMemeOn(false), 4000);
+  };
+
+  function logout() {
+    setUser(null); setSessions([]); setScreen("auth"); setMetrics(null); setAssess(""); setMsgs([]);
+    setCtx(null); setSkills([]); setGoal(""); setMatched(null); setRoadmap(null);
+    setSocials({}); setSocialInputs({}); setTodos([]);
+  }
+
+  // ── Session persistence ───────────────────────────────────────────────────
+  async function persistSession(newMetrics, newAssess, newMsgs, newApiHistory) {
+    if (!user) return;
+    const sid = currentSessionId || Date.now();
+    if (!currentSessionId) setCurrentSessionId(sid);
+    const sess = { id: sid, date: Date.now(), skills, hrs, months, goal, metrics: newMetrics, assess: newAssess, msgs: newMsgs, ctx, apiHistory: newApiHistory };
+    const updated = [sess, ...sessions.filter(s => s.id !== sid)].slice(0, 20);
+    setSessions(updated); await saveSessions(user.id, updated);
+  }
+
+  // ── Calculator ────────────────────────────────────────────────────────────
+  async function run() {
+    if (!skills.length) { setErr("Add at least one skill."); return; }
+    if (!goal.trim())   { setErr("Describe your career goal."); return; }
+    setErr(""); setRunning(true); setLoading(true); setMsgs([]); apiHistory.current = [];
+    setCurrentSessionId(null); setRoadmap(null); setOpenPhases([]); setCheckedTasks({});
+    const m = computeMetrics(skills, hrs, months);
+    setMetrics(m); setMatched(matchResources(skills));
+    const ctxObj = { skills, hrs, months, goal, metrics: m };
+    setCtx(ctxObj);
+    const prompt = `You are a direct, honest career mentor. Analyze this profile in 3 short paragraphs (plain text, no bullet points, no headers):\n\nSkills: ${skills.join(", ")}\nStudy hours/day: ${hrs}\nTimeline: ${months} months\nGoal: ${goal}\nSuccess probability: ${m.prob}%\nRisk: ${m.risk}\n\nBe honest and specific. Mention their actual skills. Give one concrete first step in the last paragraph.`;
+    try {
+      const reply = await callClaude([{ role: "user", content: prompt }], null, 700);
+      setAssess(reply);
+      const welcomeMsg = { id: Date.now(), role: "mentor", text: "Hi! I've reviewed your profile. Ask me anything about your career path, skills to focus on, or how to get started. 🎯", time: nowTs() };
+      apiHistory.current = [{ role: "user", content: prompt }, { role: "assistant", content: reply }];
+      setMsgs([welcomeMsg]);
+      setRunning(false); setLoading(false);
+      setTimeout(()=>showMeme("analysis_done", m.prob), 900);
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      await persistSession(m, reply, [welcomeMsg], apiHistory.current);
+    } catch(e) {
+      setErr("API error: " + e.message); setRunning(false); setLoading(false); showMeme("error");
+    }
+  }
+
+  // ── Chat ──────────────────────────────────────────────────────────────────
+  const sysPrompt = (c) => c ? `You are a focused career mentor. Keep replies under 120 words. User profile: skills=${c.skills.join(",")}, hrs=${c.hrs}/day, months=${c.months}, goal="${c.goal}", success=${c.metrics.prob}%, risk=${c.metrics.risk}. Be direct and helpful.` : "";
+  const canSend = (ci.trim() || pending) && !chatBusy && ctx;
+
+  async function send(text) {
+    const t = text || ci; if (!t.trim() && !pending) return; if (!ctx) return;
+    setCi(""); setChatBusy(true);
+    let userContent = [];
+    if (pending) {
+      if (pending.isImg) userContent.push({ type: "image", source: { type: "base64", media_type: pending.mimeType, data: pending.b64 } });
+      else userContent.push({ type: "text", text: `[Attached: ${pending.name}]\n${pending.text || ""}` });
+    }
+    if (t.trim()) userContent.push({ type: "text", text: t.trim() });
+    if (userContent.length === 1 && userContent[0].type === "text") userContent = userContent[0].text;
+    const uMsg = { id: Date.now(), role: "user", text: t.trim(), att: pending ? { name: pending.name, url: pending.url, isImg: pending.isImg } : null, time: nowTs() };
+    const thinkMsg = { id: Date.now() + 1, role: "mentor", thinking: true, text: "", time: nowTs() };
+    setMsgs(p => [...p, uMsg, thinkMsg]); setPending(null);
+    apiHistory.current.push({ role: "user", content: userContent });
+    try {
+      const reply = await callClaude(apiHistory.current, sysPrompt(ctx), 400);
+      apiHistory.current.push({ role: "assistant", content: reply });
+      const rMsg = { id: Date.now() + 2, role: "mentor", text: reply, time: nowTs() };
+      const newMsgs = [...msgs.filter(m => m.id !== thinkMsg.id), uMsg, rMsg];
+      setMsgs(p => [...p.filter(m => m.id !== thinkMsg.id), rMsg]);
+      await persistSession(metrics, assess, newMsgs, apiHistory.current);
+    } catch(e) {
+      setMsgs(p => [...p.filter(m => m.id !== thinkMsg.id), { id: Date.now() + 2, role: "mentor", text: "⚠️ Error: " + e.message, time: nowTs() }]);
+    }
+    setChatBusy(false);
+  }
+
+  function onCiKey(e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(ci); } }
+  function onKey(e) { if (e.key === "Enter") { e.preventDefault(); addSkill(skillInp); } }
+
+  // ── Skills ────────────────────────────────────────────────────────────────
+  function addSkill(s) {
+    const v = s.trim(); if (!v || skills.includes(v)) { setSkillInp(""); return; }
+    setSkills(p => [...p, v]); setSkillInp("");
+  }
+  function rmSkill(s) { setSkills(p => p.filter(x => x !== s)); }
+
+  // ── File pick ─────────────────────────────────────────────────────────────
+  async function pickFile(e) {
+    const f = e.target.files[0]; if (!f) return;
+    if (f.size > 5 * 1024 * 1024) { alert("File too large (max 5MB)"); return; }
+    e.target.value = "";
+    if (IMG_TYPES.includes(f.type)) {
+      const b64 = await toB64(f);
+      setPending({ name: f.name, size: f.size, isImg: true, mimeType: f.type, b64, url: URL.createObjectURL(f) });
+    } else {
+      const text = await f.text();
+      setPending({ name: f.name, size: f.size, isImg: false, text: text.slice(0, 2000), url: null });
+    }
+  }
+
+  // ── Roadmap ───────────────────────────────────────────────────────────────
+  async function generateRoadmap() {
+    if (!skills.length || !goal.trim()) { setRoadmapErr("Please run your career analysis first."); return; }
+    setRoadmapErr(""); setRoadmapLoading(true); setRoadmap(null); setOpenPhases([]); setCheckedTasks({});
+    const totalWeeks = Math.max(4, Math.min(parseInt(months) * 4, 24));
+    const prompt = `You are a structured career coach. Create a week-by-week roadmap. Respond ONLY with valid JSON, no markdown, no backticks.\n\nProfile: skills=${skills.join(",")}, hours=${hrs}/day, weeks=${totalWeeks}, goal="${goal}"\n\n{"title":"short title","goal":"one sentence","totalWeeks":${totalWeeks},"phases":[{"phase":1,"title":"Foundation","weeks":"1-4","color":"purple","tasks":[{"week":1,"title":"Week focus","tasks":["task1","task2","task3"],"milestone":"deliverable","hours":${hrs}}]}]}\n\nRules: 3-4 phases, weeks sum to ${totalWeeks}, 3-4 tasks per week referencing the actual skills, concrete milestones, colors: purple/blue/green/yellow/pink`;
+    try {
+      const raw = await callClaude([{ role: "user", content: prompt }], null, 1200);
+      const clean = raw.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setRoadmap(parsed);
+      setOpenPhases(parsed.phases.map((_, i) => i === 0));
+      setTimeout(()=>showMeme("roadmap_done"), 600);
+    } catch(e) { setRoadmapErr("Could not generate roadmap. Please try again."); }
+    setRoadmapLoading(false);
+  }
+
+  // ── Todos ─────────────────────────────────────────────────────────────────
+  async function addTodo() {
+    if (!todoInput.trim()) return;
+    const t = { id: Date.now(), text: todoInput.trim(), priority: todoPriority, category: todoCategory, done: false, createdAt: Date.now(), doneAt: null };
+    const updated = [t, ...todos]; setTodos(updated); setTodoInput("");
+    if (user) await saveTodosDB(user.id, updated);
+  }
+  async function toggleTodo(id) {
+    const updated = todos.map(t => t.id === id ? { ...t, done: !t.done, doneAt: !t.done ? Date.now() : null } : t);
+    setTodos(updated); if (user) await saveTodosDB(user.id, updated);
+    if (updated.length > 0 && updated.every(t=>t.done)) setTimeout(()=>showMeme("todo_done"), 400);
+  }
+  async function deleteTodo(id) {
+    const updated = todos.filter(t => t.id !== id); setTodos(updated);
+    if (user) await saveTodosDB(user.id, updated);
+  }
+
+  // ── Socials ───────────────────────────────────────────────────────────────
+  async function handleSaveSocials() {
+    const cleaned = {};
+    PLATFORMS.forEach(p => { if (socialInputs[p.id]?.trim()) cleaned[p.id] = socialInputs[p.id].trim(); });
+    setSocials(cleaned); setSocialInputs(cleaned);
+    await saveSocials(user.id, cleaned); setSocialSaved(true);
+    setTimeout(() => setSocialSaved(false), 2500);
+  }
+
+  // ── Computed ──────────────────────────────────────────────────────────────
+  const linkedCount = PLATFORMS.filter(p => socials[p.id]).length;
+  const todoTotal = todos.length;
+  const todoDone  = todos.filter(t => t.done).length;
+  const todoPct   = todoTotal > 0 ? Math.round(todoDone / todoTotal * 100) : 0;
+  const todoStreak = (() => {
+    let s = 0, d = new Date(); d.setHours(0,0,0,0);
+    for (let i = 0; i < 30; i++) {
+      const day = d.getTime();
+      if (todos.some(t => t.done && t.doneAt && new Date(t.doneAt).setHours(0,0,0,0) === day)) s++;
+      else if (i > 0) break;
+      d.setDate(d.getDate() - 1);
+    }
+    return s;
+  })();
+  const catCounts = {}, doneCatCounts = {};
+  todos.forEach(t => { catCounts[t.category] = (catCounts[t.category]||0)+1; });
+  todos.filter(t=>t.done).forEach(t => { doneCatCounts[t.category] = (doneCatCounts[t.category]||0)+1; });
+  const priColors = { high:"#f43f5e", medium:"#f59e0b", low:"#10b981" };
+  const catColors = { study:"#7c3aed", work:"#3b82f6", personal:"#ec4899", fitness:"#10b981", project:"#f59e0b" };
+  const catIcons  = { study:"📚", work:"💼", personal:"🌟", fitness:"💪", project:"🚀" };
+  const filteredTodos = todos.filter(t => todoFilter==="all" ? true : todoFilter==="done" ? t.done : !t.done);
+
+  // Roadmap computed
+  const phaseColors = {
+    purple:{ bg:"linear-gradient(135deg,#7c3aed,#9d5cf6)", light:"rgba(124,58,237,0.12)", border:"rgba(124,58,237,0.35)", badge:"#9d5cf6" },
+    blue:  { bg:"linear-gradient(135deg,#2563eb,#3b82f6)", light:"rgba(59,130,246,0.12)",  border:"rgba(59,130,246,0.35)",  badge:"#3b82f6" },
+    green: { bg:"linear-gradient(135deg,#059669,#10b981)", light:"rgba(16,185,129,0.12)",  border:"rgba(16,185,129,0.35)",  badge:"#10b981" },
+    yellow:{ bg:"linear-gradient(135deg,#d97706,#f59e0b)", light:"rgba(245,158,11,0.12)",  border:"rgba(245,158,11,0.35)",  badge:"#f59e0b" },
+    pink:  { bg:"linear-gradient(135deg,#db2777,#ec4899)", light:"rgba(236,72,153,0.12)",  border:"rgba(236,72,153,0.35)",  badge:"#ec4899" },
+  };
+  const rmTotalTasks = roadmap ? roadmap.phases.flatMap(p => p.tasks.flatMap(t => t.tasks)).length : 0;
+  const rmDoneTasks  = Object.values(checkedTasks).filter(Boolean).length;
+  const rmPct = rmTotalTasks > 0 ? Math.round((rmDoneTasks / rmTotalTasks) * 100) : 0;
+
+  // ── NAV ───────────────────────────────────────────────────────────────────
+
+  // ─── MemePopup ─────────────────────────────────────────────────────────────
+  function MemePopup() {
+    if (!meme) return null;
+    return (
+      <div style={{position:"fixed",bottom:24,right:24,zIndex:9999,pointerEvents:"none",
+        transition:"all .45s cubic-bezier(.34,1.56,.64,1)",
+        opacity:memeOn?1:0,
+        transform:memeOn?"translateY(0) scale(1)":"translateY(20px) scale(0.88)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",
+          background:"var(--card)",borderRadius:18,minWidth:200,maxWidth:260,
+          border:"1.5px solid "+meme.c+"55",
+          boxShadow:"0 12px 40px "+meme.c+"30,0 2px 8px rgba(0,0,0,.25)"}}>
+          <div style={{width:42,height:42,borderRadius:12,background:meme.c+"22",
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>
+            {meme.e}
+          </div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:12,fontWeight:800,color:"var(--text)",lineHeight:"1.3",marginBottom:2}}>{meme.t}</div>
+            <div style={{fontSize:10,color:"var(--muted2)",lineHeight:"1.4"}}>{meme.s}</div>
+          </div>
+          <div style={{width:6,height:6,borderRadius:"50%",background:meme.c,flexShrink:0}}/>
+        </div>
+      </div>
+    );
+  }
+
+  const NAV = [
+    { id:"app",         label:"Calculator" },
+    { id:"resources",   label:`Resources${matched ? " ✨" : ""}` },
+    { id:"roadmap",     label:`Roadmap${roadmap ? " ✨" : ""}` },
+    { id:"todo",        label:`To-Do${todoTotal > 0 ? ` (${todoTotal - todoDone})` : ""}` },
+    { id:"higherstudy", label:"Higher Study" },
+    { id:"language",    label:"Languages" },
+    { id:"profile",     label:`Profile${linkedCount > 0 ? ` (${linkedCount})` : ""}` },
+    { id:"history",     label:`History${sessions.length > 0 ? ` (${sessions.length})` : ""}` },
+  ];
+
+  const TopNav = () => (
+    <nav className="topnav">
+      <div className="topnav-inner">
+        <div className="nav-logo"><span className="nav-logo-icon">🎓</span>Career<span>OS</span></div>
+        <div className="nav-tabs">
+          {NAV.map(n => <button key={n.id} className={`nav-tab${screen===n.id?" active":""}`} onClick={() => setScreen(n.id)}>{n.label}</button>)}
+        </div>
+        <button onClick={()=>setDark(d=>!d)} style={{fontFamily:'Plus Jakarta Sans,sans-serif',fontSize:12,fontWeight:700,padding:"5px 12px",border:"1px solid var(--border2)",borderRadius:100,background:"var(--card2)",color:"var(--muted2)",cursor:"pointer",flexShrink:0}}>{dark ? "☀️ Light" : "🌙 Dark"}</button>
+        {user && <div className="nav-user">
+          <div className="nav-avatar">{initials(user.name)}</div>
+          <span className="nav-name">{user.name.split(" ")[0]}</span>
+          <button className="logout-btn" onClick={logout}>Sign out</button>
+        </div>}
+      </div>
+    </nav>
+  );
+
+
+  // ── AUTH SCREEN ───────────────────────────────────────────────────────────
+  if (screen === "auth") return (
+    <div className="auth-wrap"><style>{css}</style><MemePopup/>
+      <div className="auth-card">
+        <div className="auth-logo">Career<span>OS</span> 🎓</div>
+        <div className="auth-tagline">Your AI-powered career launch platform</div>
+        <div className="auth-tabs">
+          <button className={`auth-tab${authTab==="login"?" active":""}`} onClick={() => setAuthTab("login")}>Sign In</button>
+          <button className={`auth-tab${authTab==="signup"?" active":""}`} onClick={() => setAuthTab("signup")}>Sign Up</button>
+        </div>
+        {authTab === "signup" && <div className="auth-field"><label className="auth-label">Full Name</label><input className="auth-inp" placeholder="Your name" value={authName} onChange={e=>setAuthName(e.target.value)} /></div>}
+        <div className="auth-field"><label className="auth-label">Email</label><input className="auth-inp" type="email" placeholder="you@email.com" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} /></div>
+        <div className="auth-field"><label className="auth-label">Password</label><input className="auth-inp" type="password" placeholder="••••••••" value={authPass} onChange={e=>setAuthPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleAuth()} /></div>
+        {authErr && <div className="auth-err">{authErr}</div>}
+        <button className="auth-btn" onClick={handleAuth} disabled={authLoading}>{authLoading ? "Please wait…" : authTab === "login" ? "Sign In →" : "Create Account →"}</button>
+      </div>
+    </div>
+  );
+
+  // ── HISTORY SCREEN ────────────────────────────────────────────────────────
+  if (screen === "history") return (
+    <><style>{css}</style><TopNav />
+    <MemePopup/>
+    <div className="hist-wrap">
+      <div className="hist-hdr">📋 Session History</div>
+      {sessions.length === 0 ? <div className="hist-empty">No saved sessions yet.<br/>Run your first analysis to get started! ✨</div> :
+        sessions.map(s => (
+          <div key={s.id} className="sess-card">
+            <div className="sess-top">
+              <div className="sess-icon">🎯</div>
+              <div><div className="sess-goal">{s.goal || "Unnamed session"}</div><div className="sess-date">{fmtDate(s.date)} · {s.msgs?.length||0} messages</div></div>
+            </div>
+            {s.skills?.length > 0 && <div className="sess-tags">{s.skills.slice(0,6).map(sk=><span key={sk} className="sess-tag">{sk}</span>)}{s.skills.length>6&&<span className="sess-tag">+{s.skills.length-6}</span>}</div>}
+            {s.metrics && <div className="sess-metrics">
+              <div className="sess-met"><div className="sess-met-v" style={{background:"linear-gradient(135deg,var(--violet2),var(--pink2))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>{s.metrics.prob}%</div><div className="sess-met-l">Success</div></div>
+              <div className="sess-met"><div className="sess-met-v">{s.metrics.mo}mo</div><div className="sess-met-l">Timeline</div></div>
+              <div className="sess-met"><div className="sess-met-v" style={{color:riskColor(s.metrics.risk),fontSize:14}}>{s.metrics.risk}</div><div className="sess-met-l">Risk</div></div>
+            </div>}
+            <div className="sess-btns">
+              <button className="sess-btn primary" onClick={() => {
+                setSkills(s.skills||[]); setHrs(s.hrs||3); setMonths(s.months||6); setGoal(s.goal||"");
+                setMetrics(s.metrics); setAssess(s.assess||""); setMsgs(s.msgs||[]); setCtx(s.ctx);
+                setMatched(matchResources(s.skills||[])); setCurrentSessionId(s.id);
+                if (s.apiHistory) apiHistory.current = s.apiHistory;
+                setScreen("app");
+              }}>▶ Resume</button>
+              <button className="sess-btn danger" onClick={async () => {
+                const updated = sessions.filter(x=>x.id!==s.id); setSessions(updated);
+                await saveSessions(user.id, updated);
+              }}>🗑 Delete</button>
+            </div>
+          </div>
+        ))
+      }
+    </div></>
+  );
+
+  // ── RESOURCES SCREEN ──────────────────────────────────────────────────────
+  if (screen === "resources") {
+    const data = matched || matchResources(skills);
+    const show = s => resFilter === "All" || resFilter === s;
+    const badge = (color, txt) => <span className="res-card-badge" style={{background:`${color}18`,border:`1px solid ${color}44`,color}}>{txt}</span>;
+    return (
+      <><style>{css}</style><TopNav />
+      <MemePopup/>
+      <div className="res-wrap">
+        <div className="filter-bar">
+          {["All","YouTube","Courses","Jobs","Internships","Fellowships","Social"].map(f => <button key={f} className={`filter-btn${resFilter===f?" active":""}`} onClick={()=>setResFilter(f)}>{f}</button>)}
+        </div>
+        {show("YouTube") && <><div className="sec-hdr"><span className="sec-icon">▶️</span><span className="sec-title">YouTube Channels</span><span className="sec-count">{data.youtube.length} channels</span></div>
+          <div className="card-grid">{data.youtube.map((r,i)=><a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="res-card"><div className="res-arrow">↗</div><div className="res-card-title">{r.title}</div><div className="res-card-desc">{r.desc}</div>{badge("#ef4444","▶ Watch Free")}</a>)}</div></>}
+        {show("Courses") && <><div className="sec-hdr"><span className="sec-icon">🎓</span><span className="sec-title">Online Courses</span><span className="sec-count">{data.courses.length} courses</span></div>
+          <div className="card-grid">{data.courses.map((r,i)=><a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="res-card"><div className="res-arrow">↗</div><div className="res-card-title">{r.title}</div><div className="res-card-desc">{r.desc}</div>{badge("#10b981",r.price)}</a>)}</div></>}
+        {show("Jobs") && <><div className="sec-hdr"><span className="sec-icon">💼</span><span className="sec-title">Job Platforms</span><span className="sec-count">{data.jobs.length} platforms</span></div>
+          <div className="card-grid">{data.jobs.map((r,i)=><a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="res-card"><div className="res-arrow">↗</div><div className="res-card-title">{r.title}</div><div className="res-card-desc">{r.desc}</div>{badge("#3b82f6",r.badge)}</a>)}</div></>}
+        {show("Internships") && <><div className="sec-hdr"><span className="sec-icon">🏢</span><span className="sec-title">Internships</span><span className="sec-count">{data.internships.length} programs</span></div>
+          <div className="card-grid">{data.internships.map((r,i)=><a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="res-card"><div className="res-arrow">↗</div><div className="res-card-title">{r.title}</div><div className="res-card-desc">{r.desc}</div>{badge("#f59e0b",r.badge)}</a>)}</div></>}
+        {show("Fellowships") && <><div className="sec-hdr"><span className="sec-icon">🌟</span><span className="sec-title">Fellowship Programs</span><span className="sec-count">{data.fellowships.length} fellowships</span></div>
+          <div className="card-grid">{data.fellowships.map((r,i)=><a key={i} href={r.url} target="_blank" rel="noopener noreferrer" className="res-card"><div className="res-arrow">↗</div><div className="res-card-title">{r.title}</div><div className="res-card-desc">{r.desc}</div>{badge("#a855f7",r.badge)}</a>)}</div></>}
+        {show("Social") && <><div className="sec-hdr"><span className="sec-icon">🔗</span><span className="sec-title">Social & Portfolio Platforms</span><span className="sec-count">{SOCIAL_PLATFORMS_DATA.length} platforms</span></div>
+          <div className="social-plat-grid">{SOCIAL_PLATFORMS_DATA.map(p=>(
+            <a key={p.id} href={p.url} target="_blank" rel="noopener noreferrer" className="social-plat-card" style={{borderColor:p.color+"33"}}>
+              <div className="sp-icon" style={{background:p.color+"18"}}>{p.icon}</div>
+              <div><div className="sp-name" style={{color:p.color}}>{p.name}</div><div className="sp-desc">{p.desc}</div>
+              <div className="sp-meta"><span className="sp-region">{p.region}</span><span className="sp-best">{p.best}</span></div></div>
+            </a>
+          ))}</div></>}
+        <div className="footer">Career OS · <span>Resources</span> · Powered by Claude</div>
+      </div></>
+    );
+  }
+
+  // ── ROADMAP SCREEN ────────────────────────────────────────────────────────
+  if (screen === "roadmap") return (
+    <><style>{css}</style><TopNav />
+    <MemePopup/>
+    <div className="roadmap-wrap">
+      {roadmapErr && <div className="rm-err">⚠️ {roadmapErr}</div>}
+      {!roadmap && !roadmapLoading && (
+        <div className="roadmap-generate-wrap">
+          <div style={{fontSize:52,marginBottom:16}}>🗺️</div>
+          <div style={{fontSize:18,fontWeight:800,marginBottom:8}}>Generate Your Roadmap</div>
+          <div style={{fontSize:13,color:"var(--muted2)",marginBottom:24,lineHeight:1.6}}>
+            {skills.length > 0 && goal ? `Ready to build your ${months}-month plan for: "${goal.slice(0,60)}${goal.length>60?"…":""}"` : "Run your career analysis first, then come back to generate a week-by-week plan."}
+          </div>
+          <button className="generate-btn" onClick={generateRoadmap} disabled={!skills.length || !goal.trim()}>✨ Generate My Week-by-Week Plan</button>
+        </div>
+      )}
+      {roadmapLoading && <div className="roadmap-loader"><div className="roadmap-loader-ring"/><div className="roadmap-loader-txt">Building your personalized roadmap…</div></div>}
+      {roadmap && !roadmapLoading && (<>
+        <div className="roadmap-hero">
+          <div className="roadmap-title">🗺️ {roadmap.title}</div>
+          <div className="roadmap-goal-text">{roadmap.goal}</div>
+          <div className="roadmap-meta">
+            <span className="rm-meta-pill">📅 {roadmap.totalWeeks} weeks</span>
+            <span className="rm-meta-pill">⏱️ {hrs}h/day</span>
+            <span className="rm-meta-pill">🎯 {skills.slice(0,3).join(", ")}{skills.length>3?` +${skills.length-3}`:""}</span>
+          </div>
+        </div>
+        <div className="roadmap-progress-summary">
+          <div className="rps-icon">✅</div>
+          <div className="rps-info"><div className="rps-title">Progress — {rmPct}% complete</div><div className="rps-bar"><div className="rps-fill" style={{width:rmPct+"%"}}/></div></div>
+          <div className="rps-count">{rmDoneTasks}/{rmTotalTasks}</div>
+          <button className="regen-btn" onClick={generateRoadmap} disabled={roadmapLoading}>↺ Regenerate</button>
+        </div>
+        {roadmap.phases.map((phase, pi) => {
+          const c = phaseColors[phase.color] || phaseColors.purple;
+          const phaseTasks = phase.tasks.flatMap(t=>t.tasks).length;
+          const phaseDone  = phase.tasks.flatMap((t,ti)=>t.tasks.map((_,ki)=>`${pi}-${ti}-${ki}`)).filter(k=>checkedTasks[k]).length;
+          const pp = phaseTasks > 0 ? (phaseDone/phaseTasks)*100 : 0;
+          return (
+            <div key={pi} className="phase-block">
+              <div className="phase-header" style={{background:c.bg}} onClick={()=>setOpenPhases(p=>p.map((v,j)=>j===pi?!v:v))}>
+                <div className="phase-num">{phase.phase}</div>
+                <div className="phase-info"><div className="phase-name">{phase.title}</div><div className="phase-weeks-label">Weeks {phase.weeks} · {phaseDone}/{phaseTasks} done</div></div>
+                <div className={`phase-chevron${openPhases[pi]?" open":""}`}>▼</div>
+              </div>
+              <div className="phase-progress-bar"><div className="phase-progress-fill" style={{width:pp+"%",background:c.badge}}/></div>
+              {openPhases[pi] && <div className="weeks-list">
+                {phase.tasks.map((wk,wi) => (
+                  <div key={wi} className="week-row">
+                    <div className="week-top">
+                      <div className="week-badge" style={{background:c.badge}}>W{wk.week}</div>
+                      <div className="week-title">{wk.title}</div>
+                      <div className="week-hrs">⏱️ {wk.hours}h/day</div>
+                    </div>
+                    <div className="week-tasks-list">
+                      {wk.tasks.map((task,ki)=>{
+                        const key=`${pi}-${wi}-${ki}`, done=!!checkedTasks[key];
+                        return <div key={ki} className="week-task">
+                          <div className={`task-check${done?" done":""}`} onClick={()=>setCheckedTasks(p=>({...p,[key]:!p[key]}))}>{ done?"✓":""}</div>
+                          <span className={done?"task-text done":"task-text"}>{task}</span>
+                        </div>;
+                      })}
+                    </div>
+                    {wk.milestone && <div className="milestone-pill" style={{color:c.badge,borderColor:c.border,background:c.light}}>🏁 {wk.milestone}</div>}
+                  </div>
+                ))}
+              </div>}
+            </div>
+          );
+        })}
+      </>)}
+    </div></>
+  );
+
+  // ── TODO SCREEN ───────────────────────────────────────────────────────────
+  if (screen === "todo") return (
+    <><style>{css}</style><TopNav />
+    <MemePopup/>
+    <div className="todo-wrap">
+      <div className="todo-stats">
+        <div className="todo-stat-card main">
+          <div className="todo-stat-num" style={{background:"linear-gradient(135deg,#a78bfa,#f472b6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>{todoPct}%</div>
+          <div className="todo-stat-lbl">Complete</div>
+          <div className="todo-stat-bar"><div className="todo-stat-fill" style={{width:todoPct+"%"}}/></div>
+        </div>
+        <div className="todo-stat-card"><div className="todo-stat-num">{todoDone}</div><div className="todo-stat-lbl">Done ✅</div></div>
+        <div className="todo-stat-card"><div className="todo-stat-num">{todoTotal-todoDone}</div><div className="todo-stat-lbl">Pending ⏳</div></div>
+        <div className="todo-stat-card"><div className="todo-stat-num" style={{color:"#f59e0b"}}>{todoStreak}</div><div className="todo-stat-lbl">Streak 🔥</div></div>
+      </div>
+
+      {/* Work analysis */}
+      <div className="work-analysis">
+        <div className="wa-title">📊 Work Analysis</div>
+        <div className="wa-cards">
+          <div className="wa-card"><div className="wa-card-num">{todoTotal}</div><div className="wa-card-lbl">Total Tasks</div></div>
+          <div className="wa-card"><div className="wa-card-num">{todoDone}</div><div className="wa-card-lbl">Completed</div></div>
+          <div className="wa-card"><div className="wa-card-num">{todoStreak}</div><div className="wa-card-lbl">Day Streak</div></div>
+          <div className="wa-card"><div className="wa-card-num">{todoTotal > 0 ? Object.keys(catCounts).length : 0}</div><div className="wa-card-lbl">Categories</div></div>
+        </div>
+        {todoTotal > 0 && <div className="wa-bar-section">
+          {Object.entries(catColors).map(([cat, col]) => {
+            const c = catCounts[cat]||0, dc = doneCatCounts[cat]||0;
+            if (!c) return null;
+            return <div key={cat} className="wa-bar-row">
+              <div className="wa-bar-label">{catIcons[cat]} {cat}</div>
+              <div className="wa-bar"><div className="wa-bar-fill" style={{width:(dc/c*100)+"%",background:col}}/></div>
+              <div className="wa-bar-count">{dc}/{c}</div>
+            </div>;
+          })}
+        </div>}
+      </div>
+
+      {/* Category pills */}
+      {todoTotal > 0 && <div className="todo-cats" style={{marginTop:14}}>
+        {Object.entries(catColors).map(([cat,col]) => {
+          const c=catCounts[cat]||0, dc=doneCatCounts[cat]||0;
+          if (!c) return null;
+          return <div key={cat} className="todo-cat-pill" style={{borderColor:col+"44",background:col+"11"}}><span>{catIcons[cat]}</span><span style={{color:col,fontWeight:700}}>{cat}</span><span style={{color:"var(--muted2)"}}>{dc}/{c}</span></div>;
+        })}
+      </div>}
+
+      {/* Add task */}
+      <div className="todo-add-card">
+        <div className="todo-add-title">➕ Add Task</div>
+        <input className="todo-input" placeholder="What do you need to do?" value={todoInput} onChange={e=>setTodoInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addTodo()} />
+        <div className="todo-add-row">
+          <div className="todo-select-wrap">
+            <select className="todo-select" value={todoCategory} onChange={e=>setTodoCategory(e.target.value)}>
+              <option value="study">📚 Study</option>
+              <option value="work">💼 Work</option>
+              <option value="project">🚀 Project</option>
+              <option value="personal">🌟 Personal</option>
+              <option value="fitness">💪 Fitness</option>
+            </select>
+          </div>
+          <div className="todo-select-wrap">
+            <select className="todo-select" value={todoPriority} onChange={e=>setTodoPriority(e.target.value)}>
+              <option value="high">🔴 High</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+          <button className="todo-add-btn" onClick={addTodo}>Add</button>
+        </div>
+      </div>
+
+      <div className="filter-bar" style={{marginTop:14}}>
+        {["all","pending","done"].map(f=><button key={f} className={`filter-btn${todoFilter===f?" active":""}`} onClick={()=>setTodoFilter(f)}>{f==="all"?"All Tasks":f==="pending"?"Pending":"Completed"}</button>)}
+      </div>
+
+      <div className="todo-list">
+        {filteredTodos.length === 0 && <div style={{textAlign:"center",padding:"40px 20px",color:"var(--muted2)",fontSize:14}}>{todoFilter==="done"?"No completed tasks yet 🏁":"Nothing here! Add your first task above ✨"}</div>}
+        {filteredTodos.map(t => (
+          <div key={t.id} className={`todo-item${t.done?" done":""}`}>
+            <div className="todo-check" style={{borderColor:t.done?"var(--green)":priColors[t.priority],background:t.done?"var(--green)":"transparent",color:"#fff"}} onClick={()=>toggleTodo(t.id)}>{t.done&&"✓"}</div>
+            <div className="todo-item-body">
+              <div className="todo-item-text" style={{textDecoration:t.done?"line-through":"none",opacity:t.done?.55:1}}>{t.text}</div>
+              <div className="todo-item-meta">
+                <span style={{color:catColors[t.category]}}>{catIcons[t.category]} {t.category}</span>
+                <span style={{color:priColors[t.priority]}}>● {t.priority}</span>
+                {t.done && t.doneAt && <span style={{color:"var(--green)"}}>✅ {new Date(t.doneAt).toLocaleDateString()}</span>}
+              </div>
+            </div>
+            <button className="todo-del" onClick={()=>deleteTodo(t.id)}>×</button>
+          </div>
+        ))}
+      </div>
+      <div className="footer">Career OS · <span>To-Do</span> · Work Analysis</div>
+    </div></>
+  );
+
+  // ── HIGHER STUDY SCREEN ───────────────────────────────────────────────────
+  if (screen === "higherstudy") {
+    const majors = Object.keys(UNIVERSITIES);
+    const unis = UNIVERSITIES[studyMajor] || [];
+    return (
+      <><style>{css}</style><TopNav />
+      <MemePopup/>
+      <div className="study-wrap">
+        <div className="study-hero">
+          <div className="study-hero-icon">🎓</div>
+          <div>
+            <div className="study-hero-title">Higher Study & Scholarships</div>
+            <div className="study-hero-sub">Top universities worldwide + fully-funded scholarships — filtered by your major</div>
+          </div>
+        </div>
+        <div className="major-tabs">
+          {majors.map(m => <button key={m} className={`major-tab${studyMajor===m?" active":""}`} onClick={()=>setStudyMajor(m)}>{m}</button>)}
+        </div>
+        <div className="sec-hdr"><span className="sec-icon">🏛️</span><span className="sec-title">Top Universities — {studyMajor}</span><span className="sec-count">World Rankings</span></div>
+        <div className="uni-grid">
+          {unis.map((u,i) => (
+            <a key={i} href={u.url} target="_blank" rel="noopener noreferrer" className="uni-card">
+              <div className="uni-rank">{u.rank}</div>
+              <div className="uni-body">
+                <div className="uni-name">{u.name}</div>
+                <div className="uni-country">{u.country}</div>
+                <div className="uni-scholarship">🏆 {u.scholarship}</div>
+                <div className="uni-tuition">💰 {u.tuition}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div className="sec-hdr" style={{marginTop:32}}><span className="sec-icon">💰</span><span className="sec-title">Worldwide Scholarships</span><span className="sec-count">{MAJOR_SCHOLARSHIPS.length} opportunities</span></div>
+        <div className="scholar-grid">
+          {MAJOR_SCHOLARSHIPS.map((s,i) => (
+            <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="scholar-card">
+              <div className="scholar-flag">{s.flag}</div>
+              <div className="scholar-body">
+                <div className="scholar-name">{s.name}</div>
+                <div className="scholar-for">{s.for}</div>
+                <div className="scholar-bottom"><span className="scholar-amount">🏆 {s.amount}</span><span className="scholar-deadline">📅 {s.deadline}</span></div>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div className="footer">Career OS · <span>Higher Study</span> · Global Scholarships</div>
+      </div></>
+    );
+  }
+
+  // ── LANGUAGE SCREEN ───────────────────────────────────────────────────────
+  if (screen === "language") {
+    const ytFiltered = [...LANG_YOUTUBE.filter(y=>y.lang==="Multi"||y.lang===selectedLang?.name), ...LANG_YOUTUBE.filter(y=>y.lang!=="Multi"&&y.lang!==selectedLang?.name)].slice(0,6);
+    const certsFiltered = selectedLang ? LANG_CERTS.filter(c=>c.lang===selectedLang.name||c.lang==="English").slice(0,6) : [];
+    return (
+      <><style>{css}</style><TopNav />
+      <MemePopup/>
+      <div className="lang-wrap">
+        <div className="lang-hero">
+          <div className="lang-hero-icon">🌐</div>
+          <div>
+            <div className="lang-hero-title">Learn Any Language</div>
+            <div className="lang-hero-sub">Pick a language, get curated apps, YouTube channels, Pingo AI, Lingo AI & certifications</div>
+          </div>
+        </div>
+        <div className="lang-grid">
+          {LANGUAGES.map(l => (
+            <div key={l.id} className={`lang-card${selectedLang?.id===l.id?" selected":""}`} onClick={()=>setSelectedLang(l)}>
+              <div className="lang-flag">{l.flag}</div>
+              <div className="lang-name">{l.name}</div>
+              <div className="lang-native">{l.native}</div>
+              <div className="lang-speakers">{l.speakers} speakers</div>
+              <div className="lang-diff">{l.difficulty}</div>
+            </div>
+          ))}
+        </div>
+        {selectedLang ? (<>
+          <div className="lang-selected-header">
+            <span style={{fontSize:40}}>{selectedLang.flag}</span>
+            <div>
+              <div style={{fontSize:20,fontWeight:800}}>Learning {selectedLang.name}</div>
+              <div style={{fontSize:13,color:"var(--muted2)"}}>Native: {selectedLang.native} · {selectedLang.speakers} speakers · Difficulty: {selectedLang.difficulty}</div>
+            </div>
+          </div>
+          <div className="sec-hdr"><span className="sec-icon">📱</span><span className="sec-title">Best Apps — includes Pingo AI & Lingo AI</span><span className="sec-count">{LANG_APPS.length} tools</span></div>
+          <div className="lang-apps-grid">
+            {LANG_APPS.map((a,i) => (
+              <a key={i} href={a.url} target="_blank" rel="noopener noreferrer" className="lang-app-card">
+                <div className="lang-app-icon">{a.icon}</div>
+                <div className="lang-app-name">{a.name}</div>
+                <div className="lang-app-badge">{a.badge}</div>
+                <div className="lang-app-desc">{a.desc}</div>
+              </a>
+            ))}
+          </div>
+          <div className="sec-hdr"><span className="sec-icon">▶️</span><span className="sec-title">YouTube Channels</span><span className="sec-count">{ytFiltered.length} channels</span></div>
+          <div className="yt-grid">
+            {ytFiltered.map((y,i) => (
+              <a key={i} href={y.url} target="_blank" rel="noopener noreferrer" className="yt-card">
+                <div className="yt-thumb">{y.icon}</div>
+                <div className="yt-title">{y.name}</div>
+                <div className="yt-channel">{y.lang==="Multi"?"🌍 Multi-language":"🎯 "+y.lang}</div>
+                <div className="yt-desc">{y.desc}</div>
+                <div className="yt-badge">▶ Watch Free</div>
+              </a>
+            ))}
+          </div>
+          {certsFiltered.length > 0 && <><div className="sec-hdr"><span className="sec-icon">📜</span><span className="sec-title">Official Certifications</span></div>
+          <div className="scholar-grid">
+            {certsFiltered.map((c,i) => (
+              <a key={i} href={c.url} target="_blank" rel="noopener noreferrer" className="scholar-card">
+                <div className="scholar-flag">{c.flag}</div>
+                <div className="scholar-body"><div className="scholar-name">{c.name}</div><div className="scholar-for">{c.desc}</div><div className="scholar-bottom"><span className="scholar-amount">🎓 {c.lang}</span></div></div>
+              </a>
+            ))}
+          </div></>}
+        </>) : <div style={{textAlign:"center",padding:"40px 20px",color:"var(--muted2)",fontSize:14}}>👆 Pick a language above to see personalized resources</div>}
+        <div className="footer">Career OS · <span>Languages</span> · Powered by Claude</div>
+      </div></>
+    );
+  }
+
+  // ── PROFILE SCREEN ────────────────────────────────────────────────────────
+  if (screen === "profile") return (
+    <><style>{css}</style><TopNav />
+    <MemePopup/>
+    <div className="profile-wrap">
+      <div className="profile-hero">
+        <div className="profile-avatar-big">{initials(user.name)}</div>
+        <div>
+          <div className="profile-name">{user.name}</div>
+          <div className="profile-email">{user.email}</div>
+          <div className="profile-stats">
+            <div><div className="profile-stat-val">{sessions.length}</div><div className="profile-stat-lbl">Sessions</div></div>
+            <div><div className="profile-stat-val">{linkedCount}</div><div className="profile-stat-lbl">Linked</div></div>
+            <div><div className="profile-stat-val">{sessions.length > 0 ? Math.max(...sessions.map(s=>s.metrics?.prob||0))+"%" : "—"}</div><div className="profile-stat-lbl">Best Score</div></div>
+          </div>
+        </div>
+      </div>
+      <div className="socials-title">🔗 Your Social Profiles</div>
+      <div className="socials-sub">Tap any linked profile to open it in a new tab. Add your handles below.</div>
+      <div className="platform-grid">
+        {PLATFORMS.map(p => {
+          const val = socials[p.id], url = val ? resolveUrl(p, val) : null;
+          return url ? (
+            <a key={p.id} href={url} target="_blank" rel="noopener noreferrer" className="platform-btn linked" style={{borderColor:p.color+"55",background:`linear-gradient(135deg,${p.color}15,transparent)`}}>
+              <div className="platform-status"/>
+              <div className="platform-icon">{p.icon}</div>
+              <div className="platform-name" style={{color:p.color}}>{p.name}</div>
+              <div className="platform-handle">{val}</div>
+            </a>
+          ) : (
+            <div key={p.id} className="platform-btn unlinked" onClick={()=>document.getElementById("si-"+p.id)?.focus()}>
+              <div className="platform-status"/>
+              <div className="platform-icon" style={{opacity:.45}}>{p.icon}</div>
+              <div className="platform-name">{p.name}</div>
+              <div className="platform-add-hint">+ Add below</div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="socials-form">
+        <div className="socials-form-title">✏️ Edit Your Handles</div>
+        {PLATFORMS.map(p => (
+          <div key={p.id} className="social-field-row">
+            <div className="social-field-icon">{p.icon}</div>
+            <div className="social-field-wrap">
+              <label className="social-field-lbl">{p.name}</label>
+              <input id={"si-"+p.id} className="social-inp" placeholder={p.placeholder} value={socialInputs[p.id]||""} onChange={e=>setSocialInputs(prev=>({...prev,[p.id]:e.target.value}))} />
+            </div>
+          </div>
+        ))}
+        <button className="save-socials-btn" onClick={handleSaveSocials}>💾 Save All Profiles</button>
+        {socialSaved && <div className="save-success">✅ Profiles saved!</div>}
+      </div>
+    </div></>
+  );
+
+  // ── MAIN CALCULATOR SCREEN ────────────────────────────────────────────────
+  return (
+    <><style>{css}</style>
+    <MemePopup/>
+    <input ref={fileRef} type="file" accept="image/*,.pdf,.txt,.md,.csv" style={{display:"none"}} onChange={pickFile} />
+    <TopNav />
+    <MemePopup/>
+    <div className="page">
+      <div className="hero">
+        <div className="hero-pill"><span className="pill-dot"/> AI Career Mentor</div>
+        <h1>Will You <span className="grad">Actually Make It?</span></h1>
+        <p className="hero-sub">Get your probability score, AI mentor chat, and personalized resources — all in one place.</p>
+      </div>
+      <div className="steps">
+        <div className="step-card">
+          <div className="step-hdr"><div className="step-badge">1</div><div><div className="step-title">Your Skills & Stack</div><div className="step-sub">Add everything you know</div></div></div>
+          <div className="tags">{skills.map(s=><span key={s} className="tag" onClick={()=>rmSkill(s)}>{s}<span className="tag-x">×</span></span>)}</div>
+          <div className="row"><input className="field" placeholder="e.g. Python, Figma…" value={skillInp} onChange={e=>setSkillInp(e.target.value)} onKeyDown={onKey}/><button className="pill-btn" onClick={()=>addSkill(skillInp)}>+ Add</button></div>
+          <div className="suggestions">{SKILL_SUGGESTIONS.filter(s=>!skills.includes(s)).slice(0,8).map(s=><button key={s} className="sugg" onClick={()=>addSkill(s)}>{s}</button>)}</div>
+        </div>
+        <div className="step-card">
+          <div className="step-hdr"><div className="step-badge">2</div><div><div className="step-title">Your Commitment</div><div className="step-sub">How much time can you invest?</div></div></div>
+          <div className="sl-grid">
+            <div><div className="sl-hdr"><span className="sl-lbl">Daily Study</span><div><span className="sl-val">{hrs}</span><span className="sl-unit">hrs/day</span></div></div><input ref={hrsRef} type="range" min=".5" max="12" step=".5" value={hrs} onChange={e=>{setHrs(parseFloat(e.target.value));setRP(e.target,e.target.value,.5,12);}}/><div className="sl-hint">{hrs<2?"⚠️ Light":hrs<5?"✅ Solid":"🔥 Intense"}</div></div>
+            <div><div className="sl-hdr"><span className="sl-lbl">Runway</span><div><span className="sl-val">{months}</span><span className="sl-unit">months</span></div></div><input ref={moRef} type="range" min="1" max="24" step="1" value={months} onChange={e=>{setMonths(parseInt(e.target.value));setRP(e.target,e.target.value,1,24);}}/><div className="sl-hint">{months<3?"⚡ Aggressive":months<9?"📅 Realistic":"🌱 Comfortable"}</div></div>
+          </div>
+        </div>
+        <div className="step-card">
+          <div className="step-hdr"><div className="step-badge">3</div><div><div className="step-title">Your Goal</div><div className="step-sub">Be specific for the best plan</div></div></div>
+          <textarea className="ta" placeholder="e.g. Land a PM role at a startup, get first 3 freelance clients, build a SaaS…" value={goal} onChange={e=>setGoal(e.target.value)}/>
+        </div>
+      </div>
+      {err && <div className="err-msg">⚠️ {err}</div>}
+      <button className="cta" onClick={run} disabled={running}>{running?"✨ Calculating…":"✨ Calculate My Chances"}</button>
+      {(metrics || loading) && (
+        <div className="results" ref={resultsRef}>
+          {loading && <div className="loader"><div className="loader-ring"/><div className="loader-txt">Analyzing your profile…</div></div>}
+          {metrics && !loading && <>
+            <div className="metrics-row">
+              <div className="met main"><div className="met-ico">🎯</div><div className="met-lbl">Success Rate</div><div className="met-num">{metrics.prob}<span style={{fontSize:16}}>%</span></div><div className="met-sub">probability score</div><div className="pbar"><div className="pfill" style={{width:metrics.prob+"%"}}/></div></div>
+              <div className="met"><div className="met-ico">⏱️</div><div className="met-lbl">Time Needed</div><div className="met-num" style={{color:"var(--text)",fontSize:28}}>{metrics.mo}</div><div className="met-sub">months est.</div></div>
+              <div className="met"><div className="met-ico">⚡</div><div className="met-lbl">Risk Level</div><div className="met-num" style={{color:riskColor(metrics.risk),fontSize:20,paddingTop:6}}>{metrics.risk}</div><div className="risk-row"><div className="rdot" style={{background:riskColor(metrics.risk)}}/><span style={{fontSize:10,color:riskColor(metrics.risk),fontWeight:600}}>{metrics.risk==="Low"?"on track":metrics.risk==="Medium"?"needs work":"gap detected"}</span></div></div>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+              {matched && <div style={{background:"rgba(124,58,237,0.08)",border:"1px solid var(--border)",borderRadius:14,padding:"13px 16px",fontSize:13,color:"var(--violet2)",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={()=>setScreen("resources")}><span style={{fontSize:18}}>🌍</span><div><div style={{fontWeight:700,marginBottom:1}}>Resource Hub ready!</div><div style={{fontSize:11,color:"var(--muted2)"}}>YouTube, courses, jobs, internships & fellowships →</div></div></div>}
+              <div style={{background:"rgba(16,185,129,0.07)",border:"1px solid rgba(16,185,129,0.25)",borderRadius:14,padding:"13px 16px",fontSize:13,color:"#10b981",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={()=>{setScreen("roadmap");if(!roadmap&&!roadmapLoading)generateRoadmap();}}>
+                <span style={{fontSize:18}}>🗺️</span>
+                <div><div style={{fontWeight:700,marginBottom:1}}>{roadmap?"View your Roadmap →":"Generate Week-by-Week Roadmap →"}</div><div style={{fontSize:11,color:"var(--muted2)"}}>AI-powered {months}-month plan with checkable milestones</div></div>
+                {roadmapLoading&&<div style={{marginLeft:"auto",width:14,height:14,borderRadius:"50%",border:"2px solid rgba(16,185,129,0.3)",borderTopColor:"#10b981",animation:"spin 1s linear infinite",flexShrink:0}}/>}
+              </div>
+            </div>
+            {assess && <div className="mentor-card"><div className="mentor-top"><div className="mentor-ava">🎓</div><div><div className="mentor-name">Mentor Assessment</div><div className="mentor-role">Personalized just for you</div></div></div><div className="mentor-body">{assess}</div></div>}
+            {assess && <div className="chat-card">
+              <div className="chat-top"><div className="chat-ava">🎓</div><div style={{flex:1}}><div className="chat-name">Your AI Mentor</div><div className="chat-status"><span className="ondot"/> Online · Vision enabled</div></div><div className="badge">24/7</div></div>
+              <div className="msgs">
+                {msgs.map(m=>(
+                  <div key={m.id} className={`msg ${m.role}`}>
+                    <div className="mava">{m.role==="mentor"?"🎓":"👤"}</div>
+                    <div className="mcontent">
+                      <div className="mbubble">{m.att&&(m.att.isImg?<img src={m.att.url} className="msg-img" alt="upload"/>:<div className="msg-file">📄 {m.att.name}</div>)}{m.thinking?<div className="typing"><div className="td"/><div className="td"/><div className="td"/></div>:m.text}</div>
+                      {!m.thinking&&<div className="mtime">{m.time}</div>}
+                    </div>
+                  </div>
+                ))}
+                <div ref={bottomRef}/>
+              </div>
+              <div className="qqs"><span className="qqlbl">Try:</span>{HINTS.map(q=><button key={q} className="qqbtn" disabled={chatBusy} onClick={()=>send(q)}>{q}</button>)}</div>
+              {pending&&<div className="up-strip">{pending.isImg?<img src={pending.url} className="up-thumb" alt="preview"/>:<div className="up-ico">📄</div>}<div className="up-info"><div className="up-name">{pending.name}</div><div className="up-sz">{fmtBytes(pending.size)} · ready</div></div><button className="up-rm" onClick={()=>setPending(null)}>×</button></div>}
+              <div className="chat-in"><button className="clip" disabled={chatBusy} onClick={()=>fileRef.current?.click()}>📎</button><textarea className="chat-ta" placeholder={pending?"Add message or just send…":"Ask anything… Enter to send"} value={ci} onChange={e=>setCi(e.target.value)} onKeyDown={onCiKey} disabled={chatBusy} rows={1}/><button className="send" onClick={()=>send(ci)} disabled={!canSend}>➤</button></div>
+            </div>}
+          </>}
+        </div>
+      )}
+      <div style={{display:"flex",gap:10,justifyContent:"center",marginBottom:14}}><button onClick={()=>showMeme("sign")} style={{fontFamily:'Plus Jakarta Sans,sans-serif',fontSize:11,fontWeight:700,padding:"7px 16px",background:"rgba(124,58,237,.1)",border:"1px solid rgba(124,58,237,.22)",borderRadius:100,color:"var(--violet2)",cursor:"pointer"}}>✨ Get a Sign</button><button onClick={()=>showMeme("zen")} style={{fontFamily:'Plus Jakarta Sans,sans-serif',fontSize:11,fontWeight:700,padding:"7px 16px",background:"rgba(16,185,129,.07)",border:"1px solid rgba(16,185,129,.18)",borderRadius:100,color:"#10b981",cursor:"pointer"}}>🧘 Zen Mode</button></div>
+      <div className="footer">Career OS · <span>AI Mentor</span> · Resource Hub · Powered by Claude</div>
+    </div></>
+  );
+}
