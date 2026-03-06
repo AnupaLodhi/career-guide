@@ -8,9 +8,24 @@ export default async function handler(req, res) {
 
   const KEY = process.env.ANTHROPIC_API_KEY;
 
+  // Debug: tell us exactly what's happening
   if (!KEY) {
     return res.status(500).json({ 
-      error: "ANTHROPIC_API_KEY environment variable is not set on Vercel" 
+      type: "error",
+      error: { 
+        type: "authentication_error", 
+        message: "KEY IS MISSING on Vercel. Please redeploy after adding env variable." 
+      }
+    });
+  }
+
+  if (!KEY.startsWith("sk-ant-")) {
+    return res.status(500).json({ 
+      type: "error",
+      error: { 
+        type: "authentication_error", 
+        message: "KEY FORMAT WRONG. Should start with sk-ant-" 
+      }
     });
   }
 
@@ -24,10 +39,12 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify(req.body),
     });
-
     const data = await response.json();
     return res.status(response.status).json(data);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ 
+      type: "error",
+      error: { type: "fetch_error", message: err.message }
+    });
   }
 }
