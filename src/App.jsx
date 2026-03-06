@@ -244,9 +244,9 @@ function toB64(file) {
 async function callClaude(messages, system, maxTokens = 900) {
   const body = { model: "claude-sonnet-4-20250514", max_tokens: maxTokens, messages };
   if (system) body.system = system;
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
+  const r = await fetch("/api/claude", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
   if (!r.ok) throw new Error(await r.text());
