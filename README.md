@@ -1,132 +1,158 @@
-🎯 Career OS — AI Career Calculator
+ 🎯 Career OS — AI Career Calculator
 
-An AI-powered career success platform. Enter your skills, get a success probability score, personalized roadmap, curated resources, and chat with an AI mentor — all in one app!
+> An AI-powered career success platform. Enter your skills, get a success probability score, personalized roadmap, curated resources, and chat with an AI mentor — all in one app!
 
-🌐 Live Site: 
+🌐 Live Site: [mycareerapp.netlify.app](https://mycareerapp.netlify.app)
 
-📁 Exact File Structure
-When you upload to GitHub, files MUST be in these exact locations:
-your-repo/
+---
+
+ ✨ What This App Does
+
+Career OS helps students and professionals figure out their career path using AI. Just enter your skills, how many hours a day you can study, and your timeline — and the app gives you:
+
+- A **success probability score** (e.g. 73%)
+- A **risk level** (Low / Medium / High)
+- A **personalized AI mentor** chat
+- A **week-by-week roadmap**
+- **Curated resources** matched to your skills
+- **University & scholarship** recommendations
+- **Language learning** guides
+- **Todo tracker** for your career goals
+
+
+📁 File Structure
+
+```
+career-app/
 │
-├── 📄 index.html           ← ROOT level
-├── 📄 package.json         ← ROOT level
-├── 📄 vite.config.js       ← ROOT level
-├── 📄 vercel.json          ← ROOT level
-├── 📄 README.md            ← ROOT level
+├── 📄 index.html           ← Main HTML page
+├── 📄 package.json         ← Project dependencies
+├── 📄 vite.config.js       ← Build configuration
+├── 📄 vercel.json          ← Vercel routing config
+├── 📄 README.md            ← You are here!
 │
 ├── 📁 src/
-│   ├── 📄 App.jsx          ← INSIDE src/ folder
-│   └── 📄 main.jsx         ← INSIDE src/ folder
+│   ├── 📄 App.jsx          ← Entire app (all screens + logic)
+│   └── 📄 main.jsx         ← React entry point
 │
 └── 📁 api/
-    └── 📄 claude.js        ← INSIDE api/ folder
-
-📄 What Each File Does
-FileLocationPurposeindex.htmlrootThe main HTML page users seepackage.jsonrootTells Vercel what packages to installvite.config.jsrootTells Vercel how to build the appvercel.jsonrootTells Vercel how to handle routessrc/App.jsxsrc/The ENTIRE app — all screens and logicsrc/main.jsxsrc/Starts the React appapi/claude.jsapi/Secret backend that hides your API key
-
-🚀 How to Deploy on Vercel (Step by Step)
-Step 1 — Upload files to GitHub
-
-Go to github.com → sign in
-Click "+" → "New repository"
-Name it career-app → click Create repository
-Click "uploading an existing file"
-Upload the 4 ROOT files: index.html, package.json, vite.config.js, vercel.json
-Click Commit changes
-
-Now create the src/ folder:
-
-Click "Create new file"
-In the filename box type: src/App.jsx
-Open your App.jsx file → copy ALL the code → paste it in
-Click Commit changes
-Repeat for src/main.jsx
-
-Now create the api/ folder:
-
-Click "Create new file"
-In the filename box type: api/claude.js
-Open your claude.js file → copy ALL the code → paste it in
-Click Commit changes
+    └── 📄 claude.js        ← Backend API proxy
+```
 
 
-Step 2 — Deploy on Vercel
 
-Go to vercel.com
-Click Sign up with GitHub → allow access
-Click "Add New Project"
-Find your career-app repo → click Import
-Don't change ANY settings
-Click Deploy
-Wait about 1 minute ✅
-You get a live URL like career-app.vercel.app 🎉
+🤖 AI Setup
 
+This app uses **Groq AI** (free, no credit card needed).
 
-Step 3 — Add API Key (makes AI work)
-Get your key:
+### Get your free Groq API key:
+1. Go to **console.groq.com**
+2. Sign up free
+3. Click **API Keys** → **Create API Key**
+4. Copy the key — starts with `gsk_...`
 
-Go to console.anthropic.com
-Sign up free
-Click "API Keys" on the left
-Click "Create Key" → give it a name → copy it
-It looks like: sk-ant-api03-xxxxxxxxxxxx
-
-Add it to Vercel:
-
-In Vercel → click your project
-Click Settings tab
-Click Environment Variables
-Fill in:
-
-Name: ANTHROPIC_API_KEY
-Value: paste your sk-ant-api03-xxx key
+### Add key to App.jsx:
+Open `src/App.jsx` and find this line:
+```js
+const KEY = "GROQ_KEY_HERE";
+```
+Replace with your key:
+```js
+const KEY = "gsk_your_actual_key_here";
+```
 
 
-Click Save
-Click Deployments tab → click Redeploy
-Wait 30 seconds ✅
+🚀 How to Deploy
+
+### Option A — Netlify (Drag & Drop, easiest)
+1. Go to **netlify.com** → sign up free
+2. Go to **netlify.com/drop**
+3. Drag your project folder onto the page
+4. Get instant live URL! ✅
+
+ Option B — Vercel (GitHub, auto-deploy)
+
+**Step 1 — Upload to GitHub:**
+1. Go to **github.com** → New repository → name it `career-app`
+2. Upload all files — make sure structure is correct:
+   - `index.html`, `package.json`, `vite.config.js`, `vercel.json` → at ROOT
+   - `App.jsx`, `main.jsx` → inside `src/` folder
+   - `claude.js` → inside `api/` folder
+3. Commit changes ✅
+
+**Step 2 — Deploy on Vercel:**
+1. Go to **vercel.com** → Sign up with GitHub
+2. Click **Add New Project** → Import `career-app`
+3. Click **Deploy** → wait 1 minute ✅
+
+**Step 3 — Add API key on Vercel:**
+1. Vercel → your project → **Settings** → **Environment Variables**
+2. Add:
+   - Name: `GROQ_API_KEY`
+   - Value: your `gsk_...` key
+   - Tick ✅ Production, Preview, Development
+3. Click **Save** → **Redeploy** ✅
 
 
-✨ App Features
-ScreenWhat it does🔐 Login / Sign upCreate account, saved across sessions🧮 Career CalculatorEnter skills + hours/day + timeline → get AI success score🤖 AI Mentor ChatChat with Claude AI about your career🗺️ RoadmapAI generates a week-by-week plan just for you✅ To-Do TrackerAdd tasks, set priorities, track progress📚 ResourcesYouTube, courses, jobs, internships filtered by your skills🎓 Higher StudyTop universities worldwide with rankings + scholarships🌐 LanguagesPick a language → get apps, YouTube channels, certifications👤 ProfileLink LinkedIn, GitHub, Behance and 10+ platforms🌙 Dark / LightToggle theme with one click😹 Meme ReactionsFun emoji popups when you hit milestones
 
-🔑 Getting an Anthropic API Key (Free)
+ 📱 All Screens
 
-Go to console.anthropic.com
-Click Sign up
-Verify your email
-Go to API Keys → Create Key
-Copy the key — starts with sk-ant-api03-
-New accounts get free credits to start!
-
-
-🐛 Common Problems & Fixes
-ProblemFix404 errorFiles are in wrong folder — check structure aboveBlank white screenPress F12 → Console tab → screenshot the errorAI not workingAPI key not added or wrong — recheck Step 3Build failedMake sure package.json is at ROOT not inside a folder"Module not found"Make sure src/main.jsx and src/App.jsx exist
-
-🔄 How to Update Your Site Later
-
-Make changes to any file on GitHub
-Go to Vercel → your project → Deployments
-Click Redeploy
-Done in 1 minute! ✅
-
-Or even easier — connect GitHub to Vercel and it auto-deploys every time you push!
-
-🛠️ Tech Stack
-
-React 18 — UI framework
-Vite — Build tool
-Claude AI (Anthropic) — Powers the AI mentor, analysis and roadmap
-Vercel — Hosting + serverless API
-CSS Variables — Theming
-Plus Jakarta Sans — Font
+| Screen | Description |
+|--------|-------------|
+| 🔐 **Login / Sign up** | Create account, saved in browser |
+| 🧮 **Calculator** | Enter skills + hours + timeline → AI success score |
+| 🤖 **AI Mentor Chat** | Chat with AI after running analysis |
+| 🗺️ **Roadmap** | AI-generated week-by-week career plan |
+| ✅ **To-Do** | Task tracker with priorities and progress |
+| 📚 **Resources** | YouTube, courses, jobs, internships by skill |
+| 🎓 **Higher Study** | Top universities + scholarships worldwide |
+| 🌐 **Languages** | Apps, YouTube, certifications per language |
+| 👤 **Profile** | Link LinkedIn, GitHub, Behance + 10 more |
+| 🌙 **Theme** | Dark / Light mode toggle |
+| 😹 **Memes** | Fun emoji reactions on milestones |
 
 
-📞 Need Help?
 
-Vercel docs: vercel.com/docs
-Anthropic API: docs.anthropic.com
-Ask Claude: just paste your error here! 😊
+ 🐛 Common Problems & Fixes
+
+| Problem | Fix |
+|---------|-----|
+| **Blank white screen** | Press F12 → Console → screenshot the error |
+| **AI not working** | Check API key is correct in App.jsx |
+| **404 error on Vercel** | Files are in wrong folder — check structure above |
+| **Build failed** | Make sure `package.json` is at ROOT level |
+| **"Failed to fetch"** | You're on Netlify — key must be in App.jsx directly |
+
+---
+
+ 🛠️ Tech Stack
+
+| Tool | Purpose |
+|------|---------|
+| React 18 | UI framework |
+| Vite | Build tool |
+| Groq AI (Llama 3.3) | Free AI for mentor, analysis, roadmap |
+| Vercel / Netlify | Hosting |
+| CSS Variables | Dark/light theming |
+| Plus Jakarta Sans | Font |
 
 
-Built with ❤️ · Powered by Claude AI
+ 🔄 How to Update Your Site
+
+On Netlify:
+1. Make changes to files
+2. Go to Netlify → Deploys
+3. Drag updated folder → instant redeploy ✅
+
+On Vercel:
+1. Update files on GitHub
+2. Vercel auto-redeploys in 1 minute ✅
+
+
+ 💡 Customization Ideas
+
+- Change app name → search `Career OS` in `App.jsx` and replace
+- Change colors → edit CSS variables at top of `App.jsx`
+- Add more resources → edit `RESOURCES` constant in `App.jsx`
+- Add more universities → edit `UNIVERSITIES` constant in `App.jsx`
+- Switch AI model → change `llama-3.3-70b-versatile` in `callClaude` function
