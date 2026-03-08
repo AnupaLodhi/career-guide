@@ -242,15 +242,15 @@ function toB64(file) {
   return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
 }
 async function callClaude(messages, system, maxTokens = 900) {
-  const body = { model: "claude-sonnet-4-20250514", max_tokens: maxTokens, messages };
-  if (system) body.system = system;
-  const r = await fetch("/api/claude", {
+  const KEY = "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";
+  const msgs = system ? [{ role:"system", content:system }, ...messages] : messages;
+  const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + KEY },
+    body: JSON.stringify({ model:"llama-3.3-70b-versatile", max_tokens:maxTokens, messages:msgs })
   });
   if (!r.ok) throw new Error(await r.text());
-  return (await r.json()).content.map(b => b.text || "").join("");
+  return (await r.json()).choices[0].message.content;
 }
 function setRP(el, val, min, max) { if (el) el.style.setProperty("--p", ((val - min) / (max - min)) * 100 + "%"); }
 function resolveUrl(p, val) {
