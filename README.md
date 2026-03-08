@@ -2,7 +2,7 @@
 
 > An AI-powered career success platform. Enter your skills, get a success probability score, personalized roadmap, curated resources, and chat with an AI mentor — all in one app!
 
-🌐 Live Site: career-guide-u7zu.vercel.app
+🌐 Live Site: career-guide-u7zu-git-main-anupalodhis-projects.vercel.app
 
 ---
 
