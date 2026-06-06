@@ -1,10 +1,9 @@
- 🎯 Career OS — AI Career Calculator
+ 🎯 Career Peak — AI Career Calculator
 
 > An AI-powered career success platform. Enter your skills, get a success probability score, personalized roadmap, curated resources, and chat with an AI mentor — all in one app!
 
-🌐 Live Site:  https://career-oh.netlify.app
+🌐 Live Site:(https://career-peak.lovable.app/)
 
----
 
  ✨ What This App Does
 
